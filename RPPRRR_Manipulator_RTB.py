@@ -1,6 +1,8 @@
 import roboticstoolbox as rtb
 import numpy as np
 
+
+# Robotics Toolbox Solution
 class RPPRRRManipulator():
     def __init__(self):
         self.L0 = 0.10
@@ -47,13 +49,11 @@ class RPPRRRManipulator():
                 rtb.RevoluteDH(d=self.DH_Table[4][0], a=self.DH_Table[4][1], alpha=self.DH_Table[4][2], offset=self.DH_Table[4][3]),
                 rtb.RevoluteDH(d=self.DH_Table[5][0], a=self.DH_Table[5][1], alpha=self.DH_Table[5][2], offset=self.DH_Table[5][3]),
             ],
-            base=[0, 0.1, 0, 0],
-            tool=[0, 0.1, 0, 0],
+            base=[0, 0, 0, 0],
             name="RPPRRR Manipulator"
         )
         print(robot)
         return robot
-    
     
 
     
