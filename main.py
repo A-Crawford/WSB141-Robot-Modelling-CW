@@ -8,7 +8,7 @@ if __name__ == "__main__":
 
     print(RBTmanipulator)
 
-    FKTransform = RBTmanipulator.fkine([0, 0, 0.5, 0, 0, 0, 0, 0]) #Base=0, 1, 2, 3, 4, 5, 6, Tool=0 
+    FKTransform = RBTmanipulator.fkine([0, 0, 0.5, 0, 0, 0, 0, 0]) #Base=0, Theta1, D2, D3, Theta4, Theta5, Theta6, Tool=0 
     print("Forward Kinematics with joint angles [0, 0.5, 0, 0, 0]: \n", FKTransform)
 
     RBTmanipulator.plot(RBTmanipulator.q)
