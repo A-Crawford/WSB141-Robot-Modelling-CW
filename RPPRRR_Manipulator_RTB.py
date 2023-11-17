@@ -30,19 +30,52 @@ class RPPRRRManipulator():
         # Robotics Toolbox uses d, a==Ln, alpha, offset
         # Will be using Robotics Toolbox conventiion
         # Could craete instance of rbt.serialLink directly but this allows for adjustment of table indepenetly
+        # dh_table = [
+        #     [0, 0, self.L0, 0],
+        #     [0, 0, 0, self.theta1],
+        #     [0, 0, self.d2, 0],
+        #     [0, np.radians(90), self.d3, 0],
+        #     [0, 0, self.L1, self.theta4],
+        #     [self.L2, np.radians(90), self.L5, self.theta5],
+        #     [0, 0, self.L3, self.theta6],
+        #     [0, 0, self.L4, 0]
+        # ]
+
         dh_table = [
             [0, 0, self.L0, 0],
             [0, 0, 0, self.theta1],
             [0, 0, self.d2, 0],
-            [0, np.radians(90), self.d3, 0],
+            [np.radians(90), 0, self.d3, 0],
             [0, 0, self.L1, self.theta4],
-            [self.L2, np.radians(90), self.L5, self.theta5],
+            [np.radians(90), self.L2, self.L5, self.theta6],
             [0, 0, self.L3, self.theta6],
             [0, 0, self.L4, 0]
         ]
+
         return dh_table
     
     def create_RTB_robot(self):
+
+        manipulator = rtb.DHRobot(
+            [
+                rtb.RevoluteDH(alpha=self.DH_Table[0][0], a=self.DH_Table[0][1], d=self.DH_Table[0][2], offset=self.DH_Table[0][3], qlim=np.array([0, 0])), # Fake joint to mimic base frame 
+
+                rtb.RevoluteDH(alpha=self.DH_Table[1][0], a=self.DH_Table[1][1], d=self.DH_Table[1][2], offset=self.DH_Table[1][3], qlim=np.array([np.radians(-180), np.radians(180)])), 
+
+                rtb.PrismaticDH(alpha=self.DH_Table[2][0], a=self.DH_Table[2][1], q=self.DH_Table[2][2], offset=self.DH_Table[2][3], qlim=np.array([0.0, 0.5])),
+                rtb.PrismaticDH(alpha=self.DH_Table[3][0], a=self.DH_Table[3][1], q=self.DH_Table[3][2], offset=self.DH_Table[3][3], qlim=np.array([-0.1, 0.1])),
+
+                rtb.RevoluteDH(alpha=self.DH_Table[4][0], a=self.DH_Table[4][1], d=self.DH_Table[4][2], offset=self.DH_Table[4][3], qlim=np.array([np.radians(-90), np.radians(90)])),
+                rtb.RevoluteDH(alpha=self.DH_Table[5][0], a=self.DH_Table[5][1], d=self.DH_Table[5][2], offset=self.DH_Table[5][3], qlim=np.array([np.radians(-180), np.radians(180)])),
+                rtb.RevoluteDH(alpha=self.DH_Table[6][0], a=self.DH_Table[6][1], d=self.DH_Table[6][2], offset=self.DH_Table[6][3], qlim=np.array([np.radians(-90), np.radians(90)])),
+
+                rtb.RevoluteDH(alpha=self.DH_Table[7][0], a=self.DH_Table[7][1], d=self.DH_Table[7][2], offset=self.DH_Table[7][3], qlim=np.array([0, 0])) #Fake joint to mimic tool frame
+            ],
+            name="RPPRRR Manipulator"
+        )
+
+        return manipulator
+
         Rbase = SE3
         Rbase.Rx = 0
         Rbase.Ry = 0
