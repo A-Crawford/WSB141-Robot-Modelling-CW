@@ -1,6 +1,7 @@
 import roboticstoolbox as rtb
 import numpy as np
 import RPPRRR_Manipulator_Numpy
+from spatialmath import SE3
 
 
 # Robotics Toolbox Solution
@@ -23,7 +24,6 @@ class RPPRRRManipulator():
 
         self.DH_Table = self.create_DH_table()
         self.model = self.create_RTB_robot()
-        T0_2 = self.Base_Tool_Transforms()
 
     def create_DH_table(self):
         # Default DH table is we use is Ln, Alpha, d, offset
@@ -43,37 +43,28 @@ class RPPRRRManipulator():
         return dh_table
     
     def create_RTB_robot(self):
+        Rbase = SE3
+        Rbase.Rx = 0
+        Rbase.Ry = 0
+        Rbase.Rz = 0
         # R P P R R R 
         robot = rtb.DHRobot(
             [
-                rtb.PrismaticDH(q=self.DH_Table[0][2]), # Base - Added for matricies, not an actual joint to be used
+                rtb.RevoluteDH(d=self.DH_Table[0][2], qlim=np.array([0, 0])), # Base - Added for matricies, not an actual joint to be used Qlim = 0 so it wont be used
 
-                rtb.RevoluteDH(a=self.DH_Table[1][0], alpha=self.DH_Table[1][1], d=self.DH_Table[1][2], offset=self.DH_Table[1][3]),
+                rtb.RevoluteDH(),
+                rtb.PrismaticDH(q=self.d2, qlim=np.array([0, 0.5])),
+                rtb.PrismaticDH(alpha=np.radians(90), q=self.d3, qlim=np.array([-0.1, 0.1])),
+                rtb.RevoluteDH(d=self.L1),
+                rtb.RevoluteDH(alpha=np.radians(90), a=self.L2, d=self.L5),
+                rtb.RevoluteDH(d=self.L3),
 
-                rtb.PrismaticDH(a=self.DH_Table[2][0], alpha=self.DH_Table[2][1], q=self.DH_Table[2][2], offset=self.DH_Table[2][3]),
-                rtb.PrismaticDH(a=self.DH_Table[3][0], alpha=self.DH_Table[3][1], q=self.DH_Table[3][2], offset=self.DH_Table[3][3]),
-
-                rtb.RevoluteDH(a=self.DH_Table[4][0], alpha=self.DH_Table[4][1], d=self.DH_Table[4][2], offset=self.DH_Table[4][3]),
-                rtb.RevoluteDH(a=self.DH_Table[5][0], alpha=self.DH_Table[5][1], d=self.DH_Table[5][2], offset=self.DH_Table[5][3]),
-                rtb.RevoluteDH(a=self.DH_Table[6][0], alpha=self.DH_Table[6][1], d=self.DH_Table[6][2], offset=self.DH_Table[6][3]),
-
-                rtb.PrismaticDH(q=self.DH_Table[7][2]) # Tool - Not to be used as an actual joint
+                rtb.RevoluteDH(qlim=np.array([0, 0])) # Tool - Not to be used as an actual joint, Qlim is 0 so it wont be used
             ],
-            name="RPPRRR Manipulator"
+            name="RPPRRR Manipulator",
+            base=Rbase,
         )
         return robot
     
-
-    def Base_Tool_Transforms(self):
-
-        Trasnforms = RPPRRR_Manipulator_Numpy.RPPRRRManipulator()
-
-        T0_2 = Trasnforms.TB_1.dot(Trasnforms.T1_2)
-        print(T0_2)
-        return T0_2
-
-
-
-    
-
+        
     
