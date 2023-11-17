@@ -10,8 +10,6 @@ if __name__ == "__main__":
     
     RBTmanipulator.plot([0, 0, 0.5, 0, 0, 0, 0, 0], block=True)
 
-
-
     RBTmanipulator.plot(RBTmanipulator.q)
 
     input('Press any button to continue...')
