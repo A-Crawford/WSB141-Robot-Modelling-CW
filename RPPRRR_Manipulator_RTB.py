@@ -1,6 +1,5 @@
 import roboticstoolbox as rtb
 import numpy as np
-import RPPRRR_Manipulator_Numpy
 from spatialmath import SE3
 
 
@@ -75,29 +74,6 @@ class RPPRRRManipulator():
         )
 
         return manipulator
-
-        Rbase = SE3
-        Rbase.Rx = 0
-        Rbase.Ry = 0
-        Rbase.Rz = 0
-        # R P P R R R 
-        robot = rtb.DHRobot(
-            [
-                rtb.RevoluteDH(d=self.DH_Table[0][2], qlim=np.array([0, 0])), # Base - Added for matricies, not an actual joint to be used Qlim = 0 so it wont be used
-
-                rtb.RevoluteDH(),
-                rtb.PrismaticDH(q=self.d2, qlim=np.array([0, 0.5])),
-                rtb.PrismaticDH(alpha=np.radians(90), q=self.d3, qlim=np.array([-0.1, 0.1])),
-                rtb.RevoluteDH(d=self.L1),
-                rtb.RevoluteDH(alpha=np.radians(90), a=self.L2, d=self.L5),
-                rtb.RevoluteDH(d=self.L3),
-
-                rtb.RevoluteDH(qlim=np.array([0, 0])) # Tool - Not to be used as an actual joint, Qlim is 0 so it wont be used
-            ],
-            name="RPPRRR Manipulator",
-            base=Rbase,
-        )
-        return robot
     
         
     
