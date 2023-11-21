@@ -5,7 +5,7 @@ import numpy as np
 
 from rpprrr_manipulator import RPPRRRManipulator
 
-IK_Transform_1 = np.array(
+IK_TRANSFORM_1 = np.array(
     [
         [1, 0, 0, -0.3],
         [0, -1, 0, -0.25],
@@ -14,7 +14,7 @@ IK_Transform_1 = np.array(
     ]
 )
 
-IK_Transform_2 = np.array(
+IK_TRANSFORM_2 = np.array(
     [
         [-0.8419, 0, 0.5396, 0.7684],
         [0, -1, 0, -0.25],
@@ -23,7 +23,7 @@ IK_Transform_2 = np.array(
     ]
 )
 
-IK_Transform_3 = np.array(
+IK_TRANSFORM_3 = np.array(
     [
         [-0.0023, -1, 0.1, -0.257],
         [-0.002, 1, 0.2, -0.299],
@@ -36,6 +36,10 @@ if __name__ == "__main__":
 
     manipulator = RPPRRRManipulator()
     manipualtor_fk = manipulator.forward_kinematics([0, 0.5, 0, 0, 0, 0])
+
+    manipulator_ik = manipulator.inverse_kinematics(IK_TRANSFORM_1, display=True)
+    manipulator_ik = manipulator.inverse_kinematics(IK_TRANSFORM_2, display=True)
+    manipulator_ik = manipulator.inverse_kinematics(IK_TRANSFORM_3, display=True)
 
 
     # RBTManipulator = RPPRRR_Manipulator_RTB.RPPRRRManipulator().model

@@ -7,6 +7,7 @@ import numpy as np
 from roboticstoolbox import DHRobot, RevoluteDH, PrismaticDH
 from spatialmath import SE3
 
+
 class RPPRRRManipulator(DHRobot):
     """
     Class to model and interact with RPPRRR Manipulator as defined in 23WSB141 - Introduction To Robotics Coursework
@@ -142,10 +143,18 @@ class RPPRRRManipulator(DHRobot):
 
         return fk_sol
     
-    def inverse_kinematics(self):
+    def inverse_kinematics(self, transform, display):
         '''
         Given a desired positon P and Orientation R, in the form of a SE3 transformation matrix, will return whether the manipulator can reach and the joint angles to do so.
 
-        :param transform: SE3 array
+        :param transform: Transformation matrix in a compatiable format
+        :type transform: transform matrix
         '''
-        
+        try:
+            ik_solution = self.ikine_LM(transform)
+            if display:
+                print(ik_solution)
+            return ik_solution
+        except Exception as e:
+            print("An error occured while calculating inverse kinematics: ", e)
+
