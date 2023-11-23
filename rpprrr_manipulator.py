@@ -6,6 +6,7 @@
 import numpy as np
 from roboticstoolbox import DHRobot, RevoluteDH, PrismaticDH
 from spatialmath import SE3
+from threading import Thread
 
 
 class RPPRRRManipulator(DHRobot):
@@ -42,13 +43,13 @@ class RPPRRRManipulator(DHRobot):
         )
 
         links = [
-            RevoluteDH(# Fake joint to mimic base frame 
-                alpha=self.DH_TABLE[0][0], 
-                a=self.DH_TABLE[0][1], 
-                d=self.DH_TABLE[0][2], 
-                offset=self.DH_TABLE[0][3], 
-                qlim=np.array([0, 0])
-                ), 
+            # RevoluteDH(# Fake joint to mimic base frame 
+            #     alpha=self.DH_TABLE[0][0], 
+            #     a=self.DH_TABLE[0][1], 
+            #     d=self.DH_TABLE[0][2], 
+            #     offset=self.DH_TABLE[0][3], 
+            #     qlim=np.array([0, 0])
+            #     ), 
 
             RevoluteDH(
                 alpha=self.DH_TABLE[1][0], 
@@ -95,12 +96,12 @@ class RPPRRRManipulator(DHRobot):
                 qlim=np.array([np.radians(-90), np.radians(90)])
                 ),
 
-            RevoluteDH( #Fake joint to mimic tool frame
-                alpha=self.DH_TABLE[7][0], 
-                a=self.DH_TABLE[7][1], 
-                d=self.DH_TABLE[7][2], 
-                offset=self.DH_TABLE[7][3], qlim=np.array([0, 0])
-                ) 
+            # RevoluteDH( #Fake joint to mimic tool frame
+            #     alpha=self.DH_TABLE[7][0], 
+            #     a=self.DH_TABLE[7][1], 
+            #     d=self.DH_TABLE[7][2], 
+            #     offset=self.DH_TABLE[7][3], qlim=np.array([0, 0])
+            #     ) 
         ]
 
         super().__init__(
@@ -126,14 +127,14 @@ class RPPRRRManipulator(DHRobot):
         if type(joint_angles) is not list:
             raise TypeError(f"{type(joint_angles)} is not valid. {list} expected.")
 
-        try:
-            if len(joint_angles) == 6:
-                joint_angles.insert(0, 0)
-                joint_angles.append(0)
-            else:
-                raise Exception("Incorrect array size. 6 joint angles are required")
-        except Exception as e:
-            print("An error occured: ", e)
+        # try:
+        #     if len(joint_angles) == 6:
+        #         joint_angles.insert(0, 0)
+        #         joint_angles.append(0)
+        #     else:
+        #         raise Exception("Incorrect array size. 6 joint angles are required")
+        # except Exception as e:
+        #     print("An error occured: ", e)
 
         try: 
             fk_sol = self.fkine(joint_angles)
@@ -153,8 +154,18 @@ class RPPRRRManipulator(DHRobot):
         try:
             ik_solution = self.ikine_LM(transform)
             if display:
-                print(ik_solution)
+                print(
+                    f'''
+                    Inverse Kinematic solvable: {ik_solution.success} '''
+                )
+                if ik_solution.success is not True:
+                    print(f'''
+                        Closest possible solution: {ik_solution.q.T}  
+                        ''')
+                else:
+                    print(f'''
+                        Solution: {ik_solution.q.T}
+                    ''')
             return ik_solution
         except Exception as e:
             print("An error occured while calculating inverse kinematics: ", e)
-
