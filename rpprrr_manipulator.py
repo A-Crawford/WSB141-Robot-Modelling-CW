@@ -128,14 +128,14 @@ class RPPRRRManipulator(DHRobot):
         if type(joint_angles) is not list:
             raise TypeError(f"{type(joint_angles)} is not valid. {list} expected.")
 
-        # try:
-        #     if len(joint_angles) == 6:
-        #         joint_angles.insert(0, 0)
-        #         joint_angles.append(0)
-        #     else:
-        #         raise Exception("Incorrect array size. 6 joint angles are required")
-        # except Exception as e:
-        #     print("An error occured: ", e)
+        try:
+            if len(joint_angles) == 6:
+                joint_angles.insert(0, 0)
+                joint_angles.append(0)
+            else:
+                raise Exception("Incorrect array size. 6 joint angles are required")
+        except Exception as e:
+            print("An error occured: ", e)
 
         try: 
             fk_sol = self.fkine(joint_angles)
@@ -145,7 +145,7 @@ class RPPRRRManipulator(DHRobot):
 
         return fk_sol
     
-    def inverse_kinematics(self, transform: np.NDArray, display: bool) -> IKSolution:
+    def inverse_kinematics(self, transform: np.ndarray, display: bool) -> IKSolution:
         '''
         Given a desired positon P and Orientation R, in the form of a SE3 transformation matrix, will return whether the manipulator can reach and the joint angles to do so.
 
@@ -171,7 +171,7 @@ class RPPRRRManipulator(DHRobot):
         except Exception as e:
             print("An error occured while calculating inverse kinematics: ", e)
 
-    class rpprrr_manipulator_sympy():
+    class RPPRRRManipulatorSympy():
         def __init__(self):
             self.L0 = sy.symbols('L0')
             self.L1 = sy.symbols('L1')
@@ -180,14 +180,14 @@ class RPPRRRManipulator(DHRobot):
             self.L4 = sy.symbols('L4')
             self.L5 = sy.symbols('L5')
             self.THETA1 = sy.symbols('THETA1')
-            self.THETA4 = sy.symbols('THETA2')
-            self.THETA5 = sy.symbols('THETA3')
-            self.THETA6 = sy.symbols('THETA4')
+            self.THETA4 = sy.symbols('THETA4')
+            self.THETA5 = sy.symbols('THETA5')
+            self.THETA6 = sy.symbols('THETA6')
             self.D2 = sy.symbols('D2')
             self.D3 = sy.symbols('D3')
 
-            self.DH_TABLE = sy.Matrix([
-                [ #alpha, A, D, theta
+            self.DH_TABLE = sy.Matrix(
+            [   #alpha, A, D, theta
                 [0, 0, self.L0, 0],
                 [0, 0, 0, self.THETA1],
                 [0, 0, self.D2, 0],
@@ -196,7 +196,6 @@ class RPPRRRManipulator(DHRobot):
                 [np.radians(90), self.L2, self.L5, self.THETA6],
                 [0, 0, self.L3, self.THETA6],
                 [0, 0, self.L4, 0]
-            ]
             ])
 
             self.TB_1 = sy.Matrix([
@@ -220,5 +219,34 @@ class RPPRRRManipulator(DHRobot):
                 [0, 0, 0, 1]
             ])
 
+            self.T3_4 = sy.Matrix([
+                [sy.cos(self.DH_TABLE[3, 3]), -sy.sin(self.DH_TABLE[3, 3]), 0, self.DH_TABLE[3, 1]],
+                [(sy.sin(self.DH_TABLE[3, 3])*sy.cos(self.DH_TABLE[3, 0])), (sy.cos(self.DH_TABLE[3, 3])*sy.cos(self.DH_TABLE[3, 0])), -sy.sin(self.DH_TABLE[3, 0]), (-sy.sin(self.DH_TABLE[3, 0]*self.DH_TABLE[3, 2]))],
+                [(sy.sin(self.DH_TABLE[3, 3])*sy.sin(self.DH_TABLE[3, 0])), (sy.cos(self.DH_TABLE[3, 3])*sy.sin(self.DH_TABLE[3, 0])), sy.cos(self.DH_TABLE[3, 0]), (sy.cos(self.DH_TABLE[3, 0]*self.DH_TABLE[3, 2]))],
+                [0, 0, 0, 1]
+            ])
 
+            self.T4_5 = sy.Matrix([
+                [sy.cos(self.DH_TABLE[4, 3]), -sy.sin(self.DH_TABLE[4, 3]), 0, self.DH_TABLE[4, 1]],
+                [(sy.sin(self.DH_TABLE[4, 3])*sy.cos(self.DH_TABLE[4, 0])), (sy.cos(self.DH_TABLE[4, 3])*sy.cos(self.DH_TABLE[4, 0])), -sy.sin(self.DH_TABLE[4, 0]), (-sy.sin(self.DH_TABLE[4, 0]*self.DH_TABLE[4, 2]))],
+                [(sy.sin(self.DH_TABLE[4, 3])*sy.sin(self.DH_TABLE[4, 0])), (sy.cos(self.DH_TABLE[4, 3])*sy.sin(self.DH_TABLE[4, 0])), sy.cos(self.DH_TABLE[4, 0]), (sy.cos(self.DH_TABLE[4, 0]*self.DH_TABLE[4, 2]))],
+                [0, 0, 0, 1]
+            ])
+
+            self.T5_6 = sy.Matrix([
+                [sy.cos(self.DH_TABLE[5, 3]), -sy.sin(self.DH_TABLE[5, 3]), 0, self.DH_TABLE[5, 1]],
+                [(sy.sin(self.DH_TABLE[5, 3])*sy.cos(self.DH_TABLE[5, 0])), (sy.cos(self.DH_TABLE[5, 3])*sy.cos(self.DH_TABLE[5, 0])), -sy.sin(self.DH_TABLE[5, 0]), (-sy.sin(self.DH_TABLE[5, 0]*self.DH_TABLE[5, 2]))],
+                [(sy.sin(self.DH_TABLE[5, 3])*sy.sin(self.DH_TABLE[5, 0])), (sy.cos(self.DH_TABLE[5, 3])*sy.sin(self.DH_TABLE[5, 0])), sy.cos(self.DH_TABLE[5, 0]), (sy.cos(self.DH_TABLE[5, 0]*self.DH_TABLE[5, 2]))],
+                [0, 0, 0, 1]
+            ])
+
+            self.T6_T = sy.Matrix([
+                [sy.cos(self.DH_TABLE[6, 3]), -sy.sin(self.DH_TABLE[6, 3]), 0, self.DH_TABLE[6, 1]],
+                [(sy.sin(self.DH_TABLE[6, 3])*sy.cos(self.DH_TABLE[6, 0])), (sy.cos(self.DH_TABLE[6, 3])*sy.cos(self.DH_TABLE[6, 0])), -sy.sin(self.DH_TABLE[6, 0]), (-sy.sin(self.DH_TABLE[6, 0]*self.DH_TABLE[6, 2]))],
+                [(sy.sin(self.DH_TABLE[6, 3])*sy.sin(self.DH_TABLE[6, 0])), (sy.cos(self.DH_TABLE[6, 3])*sy.sin(self.DH_TABLE[6, 0])), sy.cos(self.DH_TABLE[6, 0]), (sy.cos(self.DH_TABLE[6, 0]*self.DH_TABLE[6, 2]))],
+                [0, 0, 0, 1]
+            ])
+
+            self.TB_T = self.TB_1*self.T1_2*self.T2_3*self.T3_4*self.T4_5*self.T5_6*self.T6_T
+            self.TB_T_FK = self.TB_T.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0})
 

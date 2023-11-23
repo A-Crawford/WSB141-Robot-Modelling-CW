@@ -2,6 +2,7 @@ import RPPRRR_Manipulator_RTB
 import roboticstoolbox as rtbf
 from spatialmath import SE3
 import numpy as np
+import sympy as sy
 
 from rpprrr_manipulator import RPPRRRManipulator
 
@@ -35,11 +36,19 @@ IK_TRANSFORM_3 = np.array(
 if __name__ == "__main__":
 
     manipulator = RPPRRRManipulator()
-    manipulator_fk = manipulator.forward_kinematics([0, 0.5, 0, 0, 0, 0])
-    
-    manipulator.plot([0, 0.5, 0, 0, 0, 0], block=True)
+    sympy_manipulator = RPPRRRManipulator.RPPRRRManipulatorSympy()
 
-    ik_sol_1 = manipulator.inverse_kinematics(IK_TRANSFORM_1, display=True)
-    ik_sol_2 = manipulator.inverse_kinematics(IK_TRANSFORM_2, display=True)
-    ik_sol_3 = manipulator.inverse_kinematics(IK_TRANSFORM_3, display=True)
+    manipulator_fk = manipulator.forward_kinematics([0, 0.5, 0, 0, 0, 0])
+    print(manipulator_fk)
+
+    TB_T = np.array(sy.simplify(sympy_manipulator.TB_T_FK)).astype(float)
+    print(TB_T)
+
+    # manipulator.plot([0, 0, 0.5, 0, 0, 0, 0, 0], block=True)
+
+    # ik_sol_1 = manipulator.inverse_kinematics(IK_TRANSFORM_1, display=True)
+    # ik_sol_2 = manipulator.inverse_kinematics(IK_TRANSFORM_2, display=True)
+    # ik_sol_3 = manipulator.inverse_kinematics(IK_TRANSFORM_3, display=True)
+
+
 
