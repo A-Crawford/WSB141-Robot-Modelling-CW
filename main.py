@@ -1,7 +1,6 @@
 import RPPRRR_Manipulator_RTB 
 import roboticstoolbox as rtbf
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+from spatialmath import SE3
 import numpy as np
 
 from rpprrr_manipulator import RPPRRRManipulator
@@ -38,6 +37,9 @@ if __name__ == "__main__":
     manipulator = RPPRRRManipulator()
     manipulator_fk = manipulator.forward_kinematics([0, 0.5, 0, 0, 0, 0])
     
+    manipulator.plot([0, 0.5, 0, 0, 0, 0], block=True)
+
     ik_sol_1 = manipulator.inverse_kinematics(IK_TRANSFORM_1, display=True)
     ik_sol_2 = manipulator.inverse_kinematics(IK_TRANSFORM_2, display=True)
     ik_sol_3 = manipulator.inverse_kinematics(IK_TRANSFORM_3, display=True)
+

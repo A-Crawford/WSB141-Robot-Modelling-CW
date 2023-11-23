@@ -4,9 +4,9 @@
 """
 
 import numpy as np
-from roboticstoolbox import DHRobot, RevoluteDH, PrismaticDH
+from roboticstoolbox import DHRobot, RevoluteDH, PrismaticDH, IKSolution
 from spatialmath import SE3
-from threading import Thread
+import sympy as sy
 
 
 class RPPRRRManipulator(DHRobot):
@@ -43,13 +43,13 @@ class RPPRRRManipulator(DHRobot):
         )
 
         links = [
-            # RevoluteDH(# Fake joint to mimic base frame 
-            #     alpha=self.DH_TABLE[0][0], 
-            #     a=self.DH_TABLE[0][1], 
-            #     d=self.DH_TABLE[0][2], 
-            #     offset=self.DH_TABLE[0][3], 
-            #     qlim=np.array([0, 0])
-            #     ), 
+            RevoluteDH(# Fake joint to mimic base frame 
+                alpha=self.DH_TABLE[0][0], 
+                a=self.DH_TABLE[0][1], 
+                d=self.DH_TABLE[0][2], 
+                offset=self.DH_TABLE[0][3], 
+                qlim=np.array([0, 0])
+                ), 
 
             RevoluteDH(
                 alpha=self.DH_TABLE[1][0], 
@@ -96,17 +96,18 @@ class RPPRRRManipulator(DHRobot):
                 qlim=np.array([np.radians(-90), np.radians(90)])
                 ),
 
-            # RevoluteDH( #Fake joint to mimic tool frame
-            #     alpha=self.DH_TABLE[7][0], 
-            #     a=self.DH_TABLE[7][1], 
-            #     d=self.DH_TABLE[7][2], 
-            #     offset=self.DH_TABLE[7][3], qlim=np.array([0, 0])
-            #     ) 
+            RevoluteDH( #Fake joint to mimic tool frame
+                alpha=self.DH_TABLE[7][0], 
+                a=self.DH_TABLE[7][1], 
+                d=self.DH_TABLE[7][2], 
+                offset=self.DH_TABLE[7][3], qlim=np.array([0, 0])
+                ) 
         ]
+
 
         super().__init__(
             links, 
-            name="RPPRRR Manipulator"
+            name="RPPRRR Manipulator",
         )
 
     def forward_kinematics(self, joint_angles: list) -> SE3:
@@ -144,7 +145,7 @@ class RPPRRRManipulator(DHRobot):
 
         return fk_sol
     
-    def inverse_kinematics(self, transform, display):
+    def inverse_kinematics(self, transform: np.NDArray, display: bool) -> IKSolution:
         '''
         Given a desired positon P and Orientation R, in the form of a SE3 transformation matrix, will return whether the manipulator can reach and the joint angles to do so.
 
@@ -169,3 +170,55 @@ class RPPRRRManipulator(DHRobot):
             return ik_solution
         except Exception as e:
             print("An error occured while calculating inverse kinematics: ", e)
+
+    class rpprrr_manipulator_sympy():
+        def __init__(self):
+            self.L0 = sy.symbols('L0')
+            self.L1 = sy.symbols('L1')
+            self.L2 = sy.symbols('L2')
+            self.L3 = sy.symbols('L3')
+            self.L4 = sy.symbols('L4')
+            self.L5 = sy.symbols('L5')
+            self.THETA1 = sy.symbols('THETA1')
+            self.THETA4 = sy.symbols('THETA2')
+            self.THETA5 = sy.symbols('THETA3')
+            self.THETA6 = sy.symbols('THETA4')
+            self.D2 = sy.symbols('D2')
+            self.D3 = sy.symbols('D3')
+
+            self.DH_TABLE = sy.Matrix([
+                [ #alpha, A, D, theta
+                [0, 0, self.L0, 0],
+                [0, 0, 0, self.THETA1],
+                [0, 0, self.D2, 0],
+                [np.radians(90), 0, self.D3, 0],
+                [0, 0, self.L1, self.THETA4],
+                [np.radians(90), self.L2, self.L5, self.THETA6],
+                [0, 0, self.L3, self.THETA6],
+                [0, 0, self.L4, 0]
+            ]
+            ])
+
+            self.TB_1 = sy.Matrix([
+                [sy.cos(self.DH_TABLE[0, 3]), -sy.sin(self.DH_TABLE[0, 3]), 0, self.DH_TABLE[0, 1]],
+                [(sy.sin(self.DH_TABLE[0, 3])*sy.cos(self.DH_TABLE[0, 0])), (sy.cos(self.DH_TABLE[0, 3])*sy.cos(self.DH_TABLE[0, 0])), -sy.sin(self.DH_TABLE[0, 0]), (-sy.sin(self.DH_TABLE[0, 0]*self.DH_TABLE[0, 2]))],
+                [(sy.sin(self.DH_TABLE[0, 3])*sy.sin(self.DH_TABLE[0, 0])), (sy.cos(self.DH_TABLE[0, 3])*sy.sin(self.DH_TABLE[0, 0])), sy.cos(self.DH_TABLE[0, 0]), (sy.cos(self.DH_TABLE[0, 0]*self.DH_TABLE[0, 2]))],
+                [0, 0, 0, 1]
+            ])
+
+            self.T1_2 = sy.Matrix([
+                [sy.cos(self.DH_TABLE[1, 3]), -sy.sin(self.DH_TABLE[1, 3]), 0, self.DH_TABLE[1, 1]],
+                [(sy.sin(self.DH_TABLE[1, 3])*sy.cos(self.DH_TABLE[1, 0])), (sy.cos(self.DH_TABLE[1, 3])*sy.cos(self.DH_TABLE[1, 0])), -sy.sin(self.DH_TABLE[1, 0]), (-sy.sin(self.DH_TABLE[1, 0]*self.DH_TABLE[1, 2]))],
+                [(sy.sin(self.DH_TABLE[1, 3])*sy.sin(self.DH_TABLE[1, 0])), (sy.cos(self.DH_TABLE[1, 3])*sy.sin(self.DH_TABLE[1, 0])), sy.cos(self.DH_TABLE[1, 0]), (sy.cos(self.DH_TABLE[1, 0]*self.DH_TABLE[1, 2]))],
+                [0, 0, 0, 1]
+            ])
+
+            self.T2_3 = sy.Matrix([
+                [sy.cos(self.DH_TABLE[2, 3]), -sy.sin(self.DH_TABLE[2, 3]), 0, self.DH_TABLE[2, 1]],
+                [(sy.sin(self.DH_TABLE[2, 3])*sy.cos(self.DH_TABLE[2, 0])), (sy.cos(self.DH_TABLE[2, 3])*sy.cos(self.DH_TABLE[2, 0])), -sy.sin(self.DH_TABLE[2, 0]), (-sy.sin(self.DH_TABLE[2, 0]*self.DH_TABLE[2, 2]))],
+                [(sy.sin(self.DH_TABLE[2, 3])*sy.sin(self.DH_TABLE[2, 0])), (sy.cos(self.DH_TABLE[2, 3])*sy.sin(self.DH_TABLE[2, 0])), sy.cos(self.DH_TABLE[2, 0]), (sy.cos(self.DH_TABLE[2, 0]*self.DH_TABLE[2, 2]))],
+                [0, 0, 0, 1]
+            ])
+
+
+
