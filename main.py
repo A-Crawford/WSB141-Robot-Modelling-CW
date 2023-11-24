@@ -1,5 +1,7 @@
 import RPPRRR_Manipulator_RTB 
 import roboticstoolbox as rtbf
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import axes3d
 from spatialmath import SE3
 import numpy as np
 import sympy as sy
@@ -40,9 +42,13 @@ if __name__ == "__main__":
 
     manipulator_fk = manipulator.forward_kinematics([0, 0.5, 0, 0, 0, 0])
     print(manipulator_fk)
+    
+    print(np.array(sy.simplify(sympy_manipulator.TB_T_FK)).astype(float))
+    
+    
 
-    TB_T = np.array(sy.simplify(sympy_manipulator.TB_T_FK)).astype(float)
-    print(TB_T)
+    # TB_T = np.array(sy.simplify(sympy_manipulator.TB_T_FK)).astype(float)
+    # print(TB_T)
 
     # manipulator.plot([0, 0, 0.5, 0, 0, 0, 0, 0], block=True)
 

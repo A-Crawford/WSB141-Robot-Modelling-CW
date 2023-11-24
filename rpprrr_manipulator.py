@@ -36,7 +36,7 @@ class RPPRRRManipulator(DHRobot):
                 [0, 0, self.D2, 0],
                 [np.radians(90), 0, self.D3, 0],
                 [0, 0, self.L1, self.THETA4],
-                [np.radians(90), self.L2, self.L5, self.THETA6],
+                [np.radians(90), self.L2, self.L5, self.THETA5],
                 [0, 0, self.L3, self.THETA6],
                 [0, 0, self.L4, 0]
             ]
@@ -48,7 +48,7 @@ class RPPRRRManipulator(DHRobot):
                 a=self.DH_TABLE[0][1], 
                 d=self.DH_TABLE[0][2], 
                 offset=self.DH_TABLE[0][3], 
-                qlim=np.array([0, 0])
+                qlim=np.array([0, 0.1])
                 ), 
 
             RevoluteDH(
@@ -193,22 +193,22 @@ class RPPRRRManipulator(DHRobot):
                 [0, 0, self.D2, 0],
                 [np.radians(90), 0, self.D3, 0],
                 [0, 0, self.L1, self.THETA4],
-                [np.radians(90), self.L2, self.L5, self.THETA6],
+                [np.radians(90), self.L2, self.L5, self.THETA5],
                 [0, 0, self.L3, self.THETA6],
                 [0, 0, self.L4, 0]
             ])
 
             self.TB_1 = sy.Matrix([
                 [sy.cos(self.DH_TABLE[0, 3]), -sy.sin(self.DH_TABLE[0, 3]), 0, self.DH_TABLE[0, 1]],
-                [(sy.sin(self.DH_TABLE[0, 3])*sy.cos(self.DH_TABLE[0, 0])), (sy.cos(self.DH_TABLE[0, 3])*sy.cos(self.DH_TABLE[0, 0])), -sy.sin(self.DH_TABLE[0, 0]), (-sy.sin(self.DH_TABLE[0, 0]*self.DH_TABLE[0, 2]))],
-                [(sy.sin(self.DH_TABLE[0, 3])*sy.sin(self.DH_TABLE[0, 0])), (sy.cos(self.DH_TABLE[0, 3])*sy.sin(self.DH_TABLE[0, 0])), sy.cos(self.DH_TABLE[0, 0]), (sy.cos(self.DH_TABLE[0, 0]*self.DH_TABLE[0, 2]))],
+                [(sy.sin(self.DH_TABLE[0, 3])*sy.cos(self.DH_TABLE[0, 0])), (sy.cos(self.DH_TABLE[0, 3])*sy.cos(self.DH_TABLE[0, 0])), -sy.sin(self.DH_TABLE[0, 0]), (-sy.sin(self.DH_TABLE[0, 0])*self.DH_TABLE[0, 2])],
+                [(sy.sin(self.DH_TABLE[0, 3])*sy.sin(self.DH_TABLE[0, 0])), (sy.cos(self.DH_TABLE[0, 3])*sy.sin(self.DH_TABLE[0, 0])), sy.cos(self.DH_TABLE[0, 0]), (sy.cos(self.DH_TABLE[0, 0])*self.DH_TABLE[0, 2])],
                 [0, 0, 0, 1]
             ])
 
             self.T1_2 = sy.Matrix([
                 [sy.cos(self.DH_TABLE[1, 3]), -sy.sin(self.DH_TABLE[1, 3]), 0, self.DH_TABLE[1, 1]],
-                [(sy.sin(self.DH_TABLE[1, 3])*sy.cos(self.DH_TABLE[1, 0])), (sy.cos(self.DH_TABLE[1, 3])*sy.cos(self.DH_TABLE[1, 0])), -sy.sin(self.DH_TABLE[1, 0]), (-sy.sin(self.DH_TABLE[1, 0]*self.DH_TABLE[1, 2]))],
-                [(sy.sin(self.DH_TABLE[1, 3])*sy.sin(self.DH_TABLE[1, 0])), (sy.cos(self.DH_TABLE[1, 3])*sy.sin(self.DH_TABLE[1, 0])), sy.cos(self.DH_TABLE[1, 0]), (sy.cos(self.DH_TABLE[1, 0]*self.DH_TABLE[1, 2]))],
+                [(sy.sin(self.DH_TABLE[1, 3])*sy.cos(self.DH_TABLE[1, 0])), (sy.cos(self.DH_TABLE[1, 3])*sy.cos(self.DH_TABLE[1, 0])), -sy.sin(self.DH_TABLE[1, 0]), (-sy.sin(self.DH_TABLE[1, 0])*self.DH_TABLE[1, 2])],
+                [(sy.sin(self.DH_TABLE[1, 3])*sy.sin(self.DH_TABLE[1, 0])), (sy.cos(self.DH_TABLE[1, 3])*sy.sin(self.DH_TABLE[1, 0])), sy.cos(self.DH_TABLE[1, 0]), (sy.cos(self.DH_TABLE[1, 0])*self.DH_TABLE[1, 2])],
                 [0, 0, 0, 1]
             ])
 
@@ -246,7 +246,12 @@ class RPPRRRManipulator(DHRobot):
                 [(sy.sin(self.DH_TABLE[6, 3])*sy.sin(self.DH_TABLE[6, 0])), (sy.cos(self.DH_TABLE[6, 3])*sy.sin(self.DH_TABLE[6, 0])), sy.cos(self.DH_TABLE[6, 0]), (sy.cos(self.DH_TABLE[6, 0]*self.DH_TABLE[6, 2]))],
                 [0, 0, 0, 1]
             ])
-
+            
+            self.TB_2 = self.TB_1*self.T1_2
+            print(self.TB_1)
+            print(self.T1_2)
+                
+            
             self.TB_T = self.TB_1*self.T1_2*self.T2_3*self.T3_4*self.T4_5*self.T5_6*self.T6_T
             self.TB_T_FK = self.TB_T.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0})
 
