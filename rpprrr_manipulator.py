@@ -186,7 +186,7 @@ class RPPRRRManipulator(DHRobot):
             self.D2 = sy.symbols('D2')
             self.D3 = sy.symbols('D3')
 
-            DH_TABLE = sy.Matrix(
+            self.DH_TABLE = sy.Matrix(
             [   #alpha, A, D, theta
                 [0, 0, self.L0, 0],
                 [0, 0, 0, self.THETA1],
@@ -199,122 +199,104 @@ class RPPRRRManipulator(DHRobot):
             ])
             
             
-            self.TB_1 = sy.Matrix([
-                [sy.cos(DH_TABLE[0, 3]), -sy.sin(DH_TABLE[0, 3]), 0, DH_TABLE[0, 1]],
-                [(sy.sin(DH_TABLE[0, 3])*sy.cos(DH_TABLE[0, 0])), (sy.cos(DH_TABLE[0, 3])*sy.cos(DH_TABLE[0, 0])), -sy.sin(DH_TABLE[0, 0]), (-sy.sin(DH_TABLE[0, 0])*DH_TABLE[0, 2])],
-                [(sy.sin(DH_TABLE[0, 3])*sy.sin(DH_TABLE[0, 0])), (sy.cos(DH_TABLE[0, 3])*sy.sin(DH_TABLE[0, 0])), sy.cos(DH_TABLE[0, 0]), (sy.cos(DH_TABLE[0, 0])*DH_TABLE[0, 2])],
-                [0, 0, 0, 1],
-            ])
-            
-            self.T1_2 = sy.Matrix([
-                [sy.cos(DH_TABLE[1, 3]), -sy.sin(DH_TABLE[1, 3]), 0, DH_TABLE[1, 1]],
-                [(sy.sin(DH_TABLE[1, 3])*sy.cos(DH_TABLE[1, 0])), (sy.cos(DH_TABLE[1, 3])*sy.cos(DH_TABLE[1, 0])), -sy.sin(DH_TABLE[1, 0]), (-sy.sin(DH_TABLE[1, 0])*DH_TABLE[1, 2])],
-                [(sy.sin(DH_TABLE[1, 3])*sy.sin(DH_TABLE[1, 0])), (sy.cos(DH_TABLE[1, 3])*sy.sin(DH_TABLE[1, 0])), sy.cos(DH_TABLE[1, 0]), (sy.cos(DH_TABLE[1, 0])*DH_TABLE[1, 2])],
-                [0, 0, 0, 1],
-            ])
-            
-            self.T2_3 = sy.Matrix([
-                [sy.cos(DH_TABLE[2, 3]), -sy.sin(DH_TABLE[2, 3]), 0, DH_TABLE[2, 1]],
-                [(sy.sin(DH_TABLE[2, 3])*sy.cos(DH_TABLE[2, 0])), (sy.cos(DH_TABLE[2, 3])*sy.cos(DH_TABLE[2, 0])), -sy.sin(DH_TABLE[2, 0]), (-sy.sin(DH_TABLE[2, 0])*DH_TABLE[2, 2])],
-                [(sy.sin(DH_TABLE[2, 3])*sy.sin(DH_TABLE[2, 0])), (sy.cos(DH_TABLE[2, 3])*sy.sin(DH_TABLE[2, 0])), sy.cos(DH_TABLE[2, 0]), (sy.cos(DH_TABLE[2, 0])*DH_TABLE[2, 2])],
-                [0, 0, 0, 1],
-            ])
-            
-            self.T3_4 = sy.Matrix([
-                [sy.cos(DH_TABLE[3, 3]), -sy.sin(DH_TABLE[3, 3]), 0, DH_TABLE[3, 1]],
-                [(sy.sin(DH_TABLE[3, 3])*sy.cos(DH_TABLE[3, 0])), (sy.cos(DH_TABLE[3, 3])*sy.cos(DH_TABLE[3, 0])), -sy.sin(DH_TABLE[3, 0]), (-sy.sin(DH_TABLE[3, 0])*DH_TABLE[3, 2])],
-                [(sy.sin(DH_TABLE[3, 3])*sy.sin(DH_TABLE[3, 0])), (sy.cos(DH_TABLE[3, 3])*sy.sin(DH_TABLE[3, 0])), sy.cos(DH_TABLE[3, 0]), (sy.cos(DH_TABLE[3, 0])*DH_TABLE[3, 2])],
-                [0, 0, 0, 1],
-            ])
-            
-            self.T4_5 = sy.Matrix([
-                [sy.cos(DH_TABLE[4, 3]), -sy.sin(DH_TABLE[4, 3]), 0, DH_TABLE[4, 1]],
-                [(sy.sin(DH_TABLE[4, 3])*sy.cos(DH_TABLE[4, 0])), (sy.cos(DH_TABLE[4, 3])*sy.cos(DH_TABLE[4, 0])), -sy.sin(DH_TABLE[4, 0]), (-sy.sin(DH_TABLE[4, 0])*DH_TABLE[4, 2])],
-                [(sy.sin(DH_TABLE[4, 3])*sy.sin(DH_TABLE[4, 0])), (sy.cos(DH_TABLE[4, 3])*sy.sin(DH_TABLE[4, 0])), sy.cos(DH_TABLE[4, 0]), (sy.cos(DH_TABLE[4, 0])*DH_TABLE[4, 2])],
-                [0, 0, 0, 1],
-            ])
-            
-            self.T5_6 = sy.Matrix([
-                [sy.cos(DH_TABLE[5, 3]), -sy.sin(DH_TABLE[5, 3]), 0, DH_TABLE[5, 1]],
-                [(sy.sin(DH_TABLE[5, 3])*sy.cos(DH_TABLE[5, 0])), (sy.cos(DH_TABLE[5, 3])*sy.cos(DH_TABLE[5, 0])), -sy.sin(DH_TABLE[5, 0]), (-sy.sin(DH_TABLE[5, 0])*DH_TABLE[5, 2])],
-                [(sy.sin(DH_TABLE[5, 3])*sy.sin(DH_TABLE[5, 0])), (sy.cos(DH_TABLE[5, 3])*sy.sin(DH_TABLE[5, 0])), sy.cos(DH_TABLE[5, 0]), (sy.cos(DH_TABLE[5, 0])*DH_TABLE[5, 2])],
-                [0, 0, 0, 1],
-            ])
-            
-            self.T6_T = sy.Matrix([
-                [sy.cos(DH_TABLE[6, 3]), -sy.sin(DH_TABLE[6, 3]), 0, DH_TABLE[6, 1]],
-                [(sy.sin(DH_TABLE[6, 3])*sy.cos(DH_TABLE[6, 0])), (sy.cos(DH_TABLE[6, 3])*sy.cos(DH_TABLE[6, 0])), -sy.sin(DH_TABLE[6, 0]), (-sy.sin(DH_TABLE[6, 0])*DH_TABLE[6, 2])],
-                [(sy.sin(DH_TABLE[6, 3])*sy.sin(DH_TABLE[6, 0])), (sy.cos(DH_TABLE[6, 3])*sy.sin(DH_TABLE[6, 0])), sy.cos(DH_TABLE[6, 0]), (sy.cos(DH_TABLE[6, 0])*DH_TABLE[6, 2])],
-                [0, 0, 0, 1],
-            ])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             # self.TB_1 = sy.Matrix([
-            #     [sy.cos(self.DH_TABLE[0, 3]), -sy.sin(self.DH_TABLE[0, 3]), 0, self.DH_TABLE[0, 1]],
-            #     [(sy.sin(self.DH_TABLE[0, 3])*sy.cos(self.DH_TABLE[0, 0])), (sy.cos(self.DH_TABLE[0, 3])*sy.cos(self.DH_TABLE[0, 0])), -sy.sin(self.DH_TABLE[0, 0]), (-sy.sin(self.DH_TABLE[0, 0])*self.DH_TABLE[0, 2])],
-            #     [(sy.sin(self.DH_TABLE[0, 3])*sy.sin(self.DH_TABLE[0, 0])), (sy.cos(self.DH_TABLE[0, 3])*sy.sin(self.DH_TABLE[0, 0])), sy.cos(self.DH_TABLE[0, 0]), (sy.cos(self.DH_TABLE[0, 0])*self.DH_TABLE[0, 2])],
-            #     [0, 0, 0, 1]
+            #     [sy.cos(DH_TABLE[0, 3]), -sy.sin(DH_TABLE[0, 3]), 0, DH_TABLE[0, 1]],
+            #     [(sy.sin(DH_TABLE[0, 3])*sy.cos(DH_TABLE[0, 0])), (sy.cos(DH_TABLE[0, 3])*sy.cos(DH_TABLE[0, 0])), -sy.sin(DH_TABLE[0, 0]), (-sy.sin(DH_TABLE[0, 0])*DH_TABLE[0, 2])],
+            #     [(sy.sin(DH_TABLE[0, 3])*sy.sin(DH_TABLE[0, 0])), (sy.cos(DH_TABLE[0, 3])*sy.sin(DH_TABLE[0, 0])), sy.cos(DH_TABLE[0, 0]), (sy.cos(DH_TABLE[0, 0])*DH_TABLE[0, 2])],
+            #     [0, 0, 0, 1],
             # ])
-
+            
             # self.T1_2 = sy.Matrix([
-            #     [sy.cos(self.DH_TABLE[1, 3]), -sy.sin(self.DH_TABLE[1, 3]), 0, self.DH_TABLE[1, 1]],
-            #     [(sy.sin(self.DH_TABLE[1, 3])*sy.cos(self.DH_TABLE[1, 0])), (sy.cos(self.DH_TABLE[1, 3])*sy.cos(self.DH_TABLE[1, 0])), -sy.sin(self.DH_TABLE[1, 0]), (-sy.sin(self.DH_TABLE[1, 0])*self.DH_TABLE[1, 2])],
-            #     [(sy.sin(self.DH_TABLE[1, 3])*sy.sin(self.DH_TABLE[1, 0])), (sy.cos(self.DH_TABLE[1, 3])*sy.sin(self.DH_TABLE[1, 0])), sy.cos(self.DH_TABLE[1, 0]), (sy.cos(self.DH_TABLE[1, 0])*self.DH_TABLE[1, 2])],
-            #     [0, 0, 0, 1]
+            #     [sy.cos(DH_TABLE[1, 3]), -sy.sin(DH_TABLE[1, 3]), 0, DH_TABLE[1, 1]],
+            #     [(sy.sin(DH_TABLE[1, 3])*sy.cos(DH_TABLE[1, 0])), (sy.cos(DH_TABLE[1, 3])*sy.cos(DH_TABLE[1, 0])), -sy.sin(DH_TABLE[1, 0]), (-sy.sin(DH_TABLE[1, 0])*DH_TABLE[1, 2])],
+            #     [(sy.sin(DH_TABLE[1, 3])*sy.sin(DH_TABLE[1, 0])), (sy.cos(DH_TABLE[1, 3])*sy.sin(DH_TABLE[1, 0])), sy.cos(DH_TABLE[1, 0]), (sy.cos(DH_TABLE[1, 0])*DH_TABLE[1, 2])],
+            #     [0, 0, 0, 1],
             # ])
-
+            
             # self.T2_3 = sy.Matrix([
-            #     [sy.cos(self.DH_TABLE[2, 3]), -sy.sin(self.DH_TABLE[2, 3]), 0, self.DH_TABLE[2, 1]],
-            #     [(sy.sin(self.DH_TABLE[2, 3])*sy.cos(self.DH_TABLE[2, 0])), (sy.cos(self.DH_TABLE[2, 3])*sy.cos(self.DH_TABLE[2, 0])), -sy.sin(self.DH_TABLE[2, 0]), (-sy.sin(self.DH_TABLE[2, 0])*self.DH_TABLE[2, 2])],
-            #     [(sy.sin(self.DH_TABLE[2, 3])*sy.sin(self.DH_TABLE[2, 0])), (sy.cos(self.DH_TABLE[2, 3])*sy.sin(self.DH_TABLE[2, 0])), sy.cos(self.DH_TABLE[2, 0]), (sy.cos(self.DH_TABLE[2, 0])*self.DH_TABLE[2, 2])],
-            #     [0, 0, 0, 1]
+            #     [sy.cos(DH_TABLE[2, 3]), -sy.sin(DH_TABLE[2, 3]), 0, DH_TABLE[2, 1]],
+            #     [(sy.sin(DH_TABLE[2, 3])*sy.cos(DH_TABLE[2, 0])), (sy.cos(DH_TABLE[2, 3])*sy.cos(DH_TABLE[2, 0])), -sy.sin(DH_TABLE[2, 0]), (-sy.sin(DH_TABLE[2, 0])*DH_TABLE[2, 2])],
+            #     [(sy.sin(DH_TABLE[2, 3])*sy.sin(DH_TABLE[2, 0])), (sy.cos(DH_TABLE[2, 3])*sy.sin(DH_TABLE[2, 0])), sy.cos(DH_TABLE[2, 0]), (sy.cos(DH_TABLE[2, 0])*DH_TABLE[2, 2])],
+            #     [0, 0, 0, 1],
             # ])
-
+            
             # self.T3_4 = sy.Matrix([
-            #     [sy.cos(self.DH_TABLE[3, 3]), -sy.sin(self.DH_TABLE[3, 3]), 0, self.DH_TABLE[3, 1]],
-            #     [(sy.sin(self.DH_TABLE[3, 3])*sy.cos(self.DH_TABLE[3, 0])), (sy.cos(self.DH_TABLE[3, 3])*sy.cos(self.DH_TABLE[3, 0])), -sy.sin(self.DH_TABLE[3, 0]), (-sy.sin(self.DH_TABLE[3, 0])*self.DH_TABLE[3, 2])],
-            #     [(sy.sin(self.DH_TABLE[3, 3])*sy.sin(self.DH_TABLE[3, 0])), (sy.cos(self.DH_TABLE[3, 3])*sy.sin(self.DH_TABLE[3, 0])), sy.cos(self.DH_TABLE[3, 0]), (sy.cos(self.DH_TABLE[3, 0])*self.DH_TABLE[3, 2])],
-            #     [0, 0, 0, 1]
+            #     [sy.cos(DH_TABLE[3, 3]), -sy.sin(DH_TABLE[3, 3]), 0, DH_TABLE[3, 1]],
+            #     [(sy.sin(DH_TABLE[3, 3])*sy.cos(DH_TABLE[3, 0])), (sy.cos(DH_TABLE[3, 3])*sy.cos(DH_TABLE[3, 0])), -sy.sin(DH_TABLE[3, 0]), (-sy.sin(DH_TABLE[3, 0])*DH_TABLE[3, 2])],
+            #     [(sy.sin(DH_TABLE[3, 3])*sy.sin(DH_TABLE[3, 0])), (sy.cos(DH_TABLE[3, 3])*sy.sin(DH_TABLE[3, 0])), sy.cos(DH_TABLE[3, 0]), (sy.cos(DH_TABLE[3, 0])*DH_TABLE[3, 2])],
+            #     [0, 0, 0, 1],
             # ])
-
+            
             # self.T4_5 = sy.Matrix([
-            #     [sy.cos(self.DH_TABLE[4, 3]), -sy.sin(self.DH_TABLE[4, 3]), 0, self.DH_TABLE[4, 1]],
-            #     [(sy.sin(self.DH_TABLE[4, 3])*sy.cos(self.DH_TABLE[4, 0])), (sy.cos(self.DH_TABLE[4, 3])*sy.cos(self.DH_TABLE[4, 0])), -sy.sin(self.DH_TABLE[4, 0]), (-sy.sin(self.DH_TABLE[4, 0])*self.DH_TABLE[4, 2])],
-            #     [(sy.sin(self.DH_TABLE[4, 3])*sy.sin(self.DH_TABLE[4, 0])), (sy.cos(self.DH_TABLE[4, 3])*sy.sin(self.DH_TABLE[4, 0])), sy.cos(self.DH_TABLE[4, 0]), (sy.cos(self.DH_TABLE[4, 0])*self.DH_TABLE[4, 2])],
-            #     [0, 0, 0, 1]
+            #     [sy.cos(DH_TABLE[4, 3]), -sy.sin(DH_TABLE[4, 3]), 0, DH_TABLE[4, 1]],
+            #     [(sy.sin(DH_TABLE[4, 3])*sy.cos(DH_TABLE[4, 0])), (sy.cos(DH_TABLE[4, 3])*sy.cos(DH_TABLE[4, 0])), -sy.sin(DH_TABLE[4, 0]), (-sy.sin(DH_TABLE[4, 0])*DH_TABLE[4, 2])],
+            #     [(sy.sin(DH_TABLE[4, 3])*sy.sin(DH_TABLE[4, 0])), (sy.cos(DH_TABLE[4, 3])*sy.sin(DH_TABLE[4, 0])), sy.cos(DH_TABLE[4, 0]), (sy.cos(DH_TABLE[4, 0])*DH_TABLE[4, 2])],
+            #     [0, 0, 0, 1],
             # ])
-
+            
             # self.T5_6 = sy.Matrix([
-            #     [sy.cos(self.DH_TABLE[5, 3]), -sy.sin(self.DH_TABLE[5, 3]), 0, self.DH_TABLE[5, 1]],
-            #     [(sy.sin(self.DH_TABLE[5, 3])*sy.cos(self.DH_TABLE[5, 0])), (sy.cos(self.DH_TABLE[5, 3])*sy.cos(self.DH_TABLE[5, 0])), -sy.sin(self.DH_TABLE[5, 0]), (-sy.sin(self.DH_TABLE[5, 0])*self.DH_TABLE[5, 2])],
-            #     [(sy.sin(self.DH_TABLE[5, 3])*sy.sin(self.DH_TABLE[5, 0])), (sy.cos(self.DH_TABLE[5, 3])*sy.sin(self.DH_TABLE[5, 0])), sy.cos(self.DH_TABLE[5, 0]), (sy.cos(self.DH_TABLE[5, 0])*self.DH_TABLE[5, 2])],
-            #     [0, 0, 0, 1]
+            #     [sy.cos(DH_TABLE[5, 3]), -sy.sin(DH_TABLE[5, 3]), 0, DH_TABLE[5, 1]],
+            #     [(sy.sin(DH_TABLE[5, 3])*sy.cos(DH_TABLE[5, 0])), (sy.cos(DH_TABLE[5, 3])*sy.cos(DH_TABLE[5, 0])), -sy.sin(DH_TABLE[5, 0]), (-sy.sin(DH_TABLE[5, 0])*DH_TABLE[5, 2])],
+            #     [(sy.sin(DH_TABLE[5, 3])*sy.sin(DH_TABLE[5, 0])), (sy.cos(DH_TABLE[5, 3])*sy.sin(DH_TABLE[5, 0])), sy.cos(DH_TABLE[5, 0]), (sy.cos(DH_TABLE[5, 0])*DH_TABLE[5, 2])],
+            #     [0, 0, 0, 1],
+            # ])
+            
+            # self.T6_T = sy.Matrix([
+            #     [sy.cos(DH_TABLE[6, 3]), -sy.sin(DH_TABLE[6, 3]), 0, DH_TABLE[6, 1]],
+            #     [(sy.sin(DH_TABLE[6, 3])*sy.cos(DH_TABLE[6, 0])), (sy.cos(DH_TABLE[6, 3])*sy.cos(DH_TABLE[6, 0])), -sy.sin(DH_TABLE[6, 0]), (-sy.sin(DH_TABLE[6, 0])*DH_TABLE[6, 2])],
+            #     [(sy.sin(DH_TABLE[6, 3])*sy.sin(DH_TABLE[6, 0])), (sy.cos(DH_TABLE[6, 3])*sy.sin(DH_TABLE[6, 0])), sy.cos(DH_TABLE[6, 0]), (sy.cos(DH_TABLE[6, 0])*DH_TABLE[6, 2])],
+            #     [0, 0, 0, 1],
             # ])
 
-            # self.T6_T = sy.Matrix([
-            #     [sy.cos(self.DH_TABLE[6, 3]), -sy.sin(self.DH_TABLE[6, 3]), 0, self.DH_TABLE[6, 1]],
-            #     [(sy.sin(self.DH_TABLE[6, 3])*sy.cos(self.DH_TABLE[6, 0])), (sy.cos(self.DH_TABLE[6, 3])*sy.cos(self.DH_TABLE[6, 0])), -sy.sin(self.DH_TABLE[6, 0]), (-sy.sin(self.DH_TABLE[6, 0])*self.DH_TABLE[6, 2])],
-            #     [(sy.sin(self.DH_TABLE[6, 3])*sy.sin(self.DH_TABLE[6, 0])), (sy.cos(self.DH_TABLE[6, 3])*sy.sin(self.DH_TABLE[6, 0])), sy.cos(self.DH_TABLE[6, 0]), (sy.cos(self.DH_TABLE[6, 0])*self.DH_TABLE[6, 2])],
-            #     [0, 0, 0, 1]
-            # ])
+
+            self.TB_1 = sy.Matrix([
+                [sy.cos(self.DH_TABLE[0, 3]), -sy.sin(self.DH_TABLE[0, 3]), 0, self.DH_TABLE[0, 1]],
+                [(sy.sin(self.DH_TABLE[0, 3])*sy.cos(self.DH_TABLE[0, 0])), (sy.cos(self.DH_TABLE[0, 3])*sy.cos(self.DH_TABLE[0, 0])), -sy.sin(self.DH_TABLE[0, 0]), (-sy.sin(self.DH_TABLE[0, 0])*self.DH_TABLE[0, 2])],
+                [(sy.sin(self.DH_TABLE[0, 3])*sy.sin(self.DH_TABLE[0, 0])), (sy.cos(self.DH_TABLE[0, 3])*sy.sin(self.DH_TABLE[0, 0])), sy.cos(self.DH_TABLE[0, 0]), (sy.cos(self.DH_TABLE[0, 0])*self.DH_TABLE[0, 2])],
+                [0, 0, 0, 1]
+            ])
+
+            self.T1_2 = sy.Matrix([
+                [sy.cos(self.DH_TABLE[1, 3]), -sy.sin(self.DH_TABLE[1, 3]), 0, self.DH_TABLE[1, 1]],
+                [(sy.sin(self.DH_TABLE[1, 3])*sy.cos(self.DH_TABLE[1, 0])), (sy.cos(self.DH_TABLE[1, 3])*sy.cos(self.DH_TABLE[1, 0])), -sy.sin(self.DH_TABLE[1, 0]), (-sy.sin(self.DH_TABLE[1, 0])*self.DH_TABLE[1, 2])],
+                [(sy.sin(self.DH_TABLE[1, 3])*sy.sin(self.DH_TABLE[1, 0])), (sy.cos(self.DH_TABLE[1, 3])*sy.sin(self.DH_TABLE[1, 0])), sy.cos(self.DH_TABLE[1, 0]), (sy.cos(self.DH_TABLE[1, 0])*self.DH_TABLE[1, 2])],
+                [0, 0, 0, 1]
+            ])
+
+            self.T2_3 = sy.Matrix([
+                [sy.cos(self.DH_TABLE[2, 3]), -sy.sin(self.DH_TABLE[2, 3]), 0, self.DH_TABLE[2, 1]],
+                [(sy.sin(self.DH_TABLE[2, 3])*sy.cos(self.DH_TABLE[2, 0])), (sy.cos(self.DH_TABLE[2, 3])*sy.cos(self.DH_TABLE[2, 0])), -sy.sin(self.DH_TABLE[2, 0]), (-sy.sin(self.DH_TABLE[2, 0])*self.DH_TABLE[2, 2])],
+                [(sy.sin(self.DH_TABLE[2, 3])*sy.sin(self.DH_TABLE[2, 0])), (sy.cos(self.DH_TABLE[2, 3])*sy.sin(self.DH_TABLE[2, 0])), sy.cos(self.DH_TABLE[2, 0]), (sy.cos(self.DH_TABLE[2, 0])*self.DH_TABLE[2, 2])],
+                [0, 0, 0, 1]
+            ])
+
+            self.T3_4 = sy.Matrix([
+                [sy.cos(self.DH_TABLE[3, 3]), -sy.sin(self.DH_TABLE[3, 3]), 0, self.DH_TABLE[3, 1]],
+                [(sy.sin(self.DH_TABLE[3, 3])*sy.cos(self.DH_TABLE[3, 0])), (sy.cos(self.DH_TABLE[3, 3])*sy.cos(self.DH_TABLE[3, 0])), -sy.sin(self.DH_TABLE[3, 0]), (-sy.sin(self.DH_TABLE[3, 0])*self.DH_TABLE[3, 2])],
+                [(sy.sin(self.DH_TABLE[3, 3])*sy.sin(self.DH_TABLE[3, 0])), (sy.cos(self.DH_TABLE[3, 3])*sy.sin(self.DH_TABLE[3, 0])), sy.cos(self.DH_TABLE[3, 0]), (sy.cos(self.DH_TABLE[3, 0])*self.DH_TABLE[3, 2])],
+                [0, 0, 0, 1]
+            ])
+
+            self.T4_5 = sy.Matrix([
+                [sy.cos(self.DH_TABLE[4, 3]), -sy.sin(self.DH_TABLE[4, 3]), 0, self.DH_TABLE[4, 1]],
+                [(sy.sin(self.DH_TABLE[4, 3])*sy.cos(self.DH_TABLE[4, 0])), (sy.cos(self.DH_TABLE[4, 3])*sy.cos(self.DH_TABLE[4, 0])), -sy.sin(self.DH_TABLE[4, 0]), (-sy.sin(self.DH_TABLE[4, 0])*self.DH_TABLE[4, 2])],
+                [(sy.sin(self.DH_TABLE[4, 3])*sy.sin(self.DH_TABLE[4, 0])), (sy.cos(self.DH_TABLE[4, 3])*sy.sin(self.DH_TABLE[4, 0])), sy.cos(self.DH_TABLE[4, 0]), (sy.cos(self.DH_TABLE[4, 0])*self.DH_TABLE[4, 2])],
+                [0, 0, 0, 1]
+            ])
+
+            self.T5_6 = sy.Matrix([
+                [sy.cos(self.DH_TABLE[5, 3]), -sy.sin(self.DH_TABLE[5, 3]), 0, self.DH_TABLE[5, 1]],
+                [(sy.sin(self.DH_TABLE[5, 3])*sy.cos(self.DH_TABLE[5, 0])), (sy.cos(self.DH_TABLE[5, 3])*sy.cos(self.DH_TABLE[5, 0])), -sy.sin(self.DH_TABLE[5, 0]), (-sy.sin(self.DH_TABLE[5, 0])*self.DH_TABLE[5, 2])],
+                [(sy.sin(self.DH_TABLE[5, 3])*sy.sin(self.DH_TABLE[5, 0])), (sy.cos(self.DH_TABLE[5, 3])*sy.sin(self.DH_TABLE[5, 0])), sy.cos(self.DH_TABLE[5, 0]), (sy.cos(self.DH_TABLE[5, 0])*self.DH_TABLE[5, 2])],
+                [0, 0, 0, 1]
+            ])
+
+            self.T6_T = sy.Matrix([
+                [sy.cos(self.DH_TABLE[6, 3]), -sy.sin(self.DH_TABLE[6, 3]), 0, self.DH_TABLE[6, 1]],
+                [(sy.sin(self.DH_TABLE[6, 3])*sy.cos(self.DH_TABLE[6, 0])), (sy.cos(self.DH_TABLE[6, 3])*sy.cos(self.DH_TABLE[6, 0])), -sy.sin(self.DH_TABLE[6, 0]), (-sy.sin(self.DH_TABLE[6, 0])*self.DH_TABLE[6, 2])],
+                [(sy.sin(self.DH_TABLE[6, 3])*sy.sin(self.DH_TABLE[6, 0])), (sy.cos(self.DH_TABLE[6, 3])*sy.sin(self.DH_TABLE[6, 0])), sy.cos(self.DH_TABLE[6, 0]), (sy.cos(self.DH_TABLE[6, 0])*self.DH_TABLE[6, 2])],
+                [0, 0, 0, 1]
+            ])
             
             self.TB_2 = self.TB_1*self.T1_2
             self.TB_3 = self.TB_2*self.T2_3
@@ -323,22 +305,6 @@ class RPPRRRManipulator(DHRobot):
             self.TB_6 = self.TB_5*self.T5_6
             self.TB_T = self.TB_6*self.T6_T
             
-                       
-            # print(self.TB_1)
-            # print(self.T1_2)
-            # print(self.T2_3)
-            # print(self.T3_4)
-            # print(self.T4_5)
-            # print(self.T5_6)
-            # print(self.T6_T)
-            
-            # print(self.TB_2)
-            # print(self.TB_3)
-            # print(self.TB_4)
-            # print(self.TB_5)
-            # print(self.TB_6)
-            # print(self.TB_T)
-            
             print(self.TB_2.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
             print(self.TB_3.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
             print(self.TB_4.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
@@ -346,16 +312,6 @@ class RPPRRRManipulator(DHRobot):
             print(self.TB_6.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
             print(self.TB_T.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
             
-            # print(self.TB_1.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
-            # print(self.T1_2.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
-            # print(self.T2_3.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0})) 
-            # print(self.T3_4.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0})) 
-            # print(self.T4_5.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0})) 
-            # print(self.T5_6.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0})) 
-            # print(self.T6_T.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0})) 
-            
             self.TB_T = self.TB_1*self.T1_2*self.T2_3*self.T3_4*self.T4_5*self.T5_6*self.T6_T
             self.TB_T_FK = self.TB_T.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0})
             
-            
-
