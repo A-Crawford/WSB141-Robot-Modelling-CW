@@ -43,8 +43,7 @@ if __name__ == "__main__":
     manipulator_fk = manipulator.forward_kinematics([0, 0.5, 0, 0, 0, 0])
     print(manipulator_fk)
     
-    print(np.array(sy.simplify(sympy_manipulator.TB_T_FK)).astype(float))
-    
+    print(np.round(np.array(sy.simplify(sympy_manipulator.TB_T_FK)).astype(float), 2))
     
 
     # TB_T = np.array(sy.simplify(sympy_manipulator.TB_T_FK)).astype(float)
@@ -55,6 +54,4 @@ if __name__ == "__main__":
     # ik_sol_1 = manipulator.inverse_kinematics(IK_TRANSFORM_1, display=True)
     # ik_sol_2 = manipulator.inverse_kinematics(IK_TRANSFORM_2, display=True)
     # ik_sol_3 = manipulator.inverse_kinematics(IK_TRANSFORM_3, display=True)
-
-
 
