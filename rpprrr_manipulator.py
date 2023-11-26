@@ -145,7 +145,7 @@ class RPPRRRManipulator(DHRobot):
 
         return fk_sol
     
-    def inverse_kinematics(self, transform: np.ndarray, display=False: bool) -> IKSolution:
+    def inverse_kinematics(self, transform: np.ndarray, display=False) -> IKSolution:
         '''
         Given a desired positon P and Orientation R, in the form of a SE3 transformation matrix, will return whether the manipulator can reach and the joint angles to do so.
 
@@ -175,21 +175,27 @@ class RPPRRRManipulator(DHRobot):
         '''
         Given a set of joint angles and velocitiies, will return a jacobian matrix of linear and angular velocities
         '''
-        self.jacobian_matrix = self.jacob0(joint_angles)
+        #TODO finish commenting, add type checking, add joint angle adjustments
+        jacobian_matrix = self.jacob0(joint_angles)
         
-        velocites = self.jacobian_matrix @ joint_velocities
+        velocites = jacobian_matrix @ joint_velocities
         linear_velocities = velocites[:3]
         angular_velocities = velocites[3:]
         
-        return self.jacobian_matrix, linear_velocities, angular_velocities
+        return jacobian_matrix, linear_velocities, angular_velocities
     
     def static_torques(self, mass, g, transform):
         '''
         Give a point mass load, applied at the origin of the tool frame, will calculate the static force and torque at each joint for a set transform
         '''
-        joint_angles = self.inverse_kinematics(transform)
-        
-        
+        #TODO finish commenting, add type checking
+        joint_angles = self.inverse_kinematics(transform).q
+        jacobian_matrix = self.jacob0(joint_angles)
+        wrench = np.array([0, mass*g, 0, 0, 0, 0]).T
+        torques = self.pay(wrench, joint_angles, jacobian_matrix, 0)
+        return torques
+    
+
         
 
     class RPPRRRManipulatorSympy():

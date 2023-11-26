@@ -61,7 +61,8 @@ if __name__ == "__main__":
     print("Linear Velocities [X, Y, Z]:", linear_velocities)
     print("Angular Velocities [X, Y, Z]:",angular_velocities)
     
-    manipulator.static_torques(mass=0.2, g=9.8, transform=STATIC_FORCE_TRANSFORM)
+    torques = manipulator.static_torques(mass=0.2, g=9.8, transform=STATIC_FORCE_TRANSFORM)
+    print("Torques:", torques)
     
     # print(np.round(np.array(sy.simplify(sympy_manipulator.TB_T_FK)).astype(float), 2))
     
