@@ -97,7 +97,7 @@ if __name__ == "__main__":
     print("Linear Velocities [X, Y, Z]:", linear_velocities)
     print("Angular Velocities [X, Y, Z]:",angular_velocities)
     
-    #Utilise previously calculated jacobian to fine the torque acting on each joint wuith a mass of 0.2kg at the tool frame
+    #Utilise previously calculated jacobian to find the torque acting on each joint wuith a point mass of 0.2kg at the tool frame
     joint_torques = manipulator.static_torques(mass=0.2, g=9.8, transform=STEP3_STATIC_FORCE_TRANSFORM)
     print('Joint torques: ', joint_torques)
     
