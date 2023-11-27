@@ -4,12 +4,12 @@
 """
 
 import numpy as np
-from roboticstoolbox import DHRobot, RevoluteDH, PrismaticDH, IKSolution
+from roboticstoolbox import SerialLink, RevoluteDH, PrismaticDH, IKSolution
 from spatialmath import SE3
 import sympy as sy
 
 
-class RPPRRRManipulator(DHRobot):
+class RPPRRRManipulator(SerialLink):
     """
     Class to model and interact with RPPRRR Manipulator as defined in 23WSB141 - Introduction To Robotics Coursework
     """
@@ -43,12 +43,12 @@ class RPPRRRManipulator(DHRobot):
         )
 
         links = [
-            RevoluteDH(# Fake joint to mimic base frame 
+            PrismaticDH(# Fake joint to mimic base frame 
                 alpha=self.DH_TABLE[0][0], 
                 a=self.DH_TABLE[0][1], 
-                d=self.DH_TABLE[0][2], 
+                q=self.DH_TABLE[0][2], 
                 offset=self.DH_TABLE[0][3], 
-                qlim=np.array([0, 0.1])
+                qlim=np.array([0.1, 0.1])
                 ), 
 
             RevoluteDH(
@@ -96,11 +96,12 @@ class RPPRRRManipulator(DHRobot):
                 qlim=np.array([np.radians(-90), np.radians(90)])
                 ),
 
-            RevoluteDH( #Fake joint to mimic tool frame
+            PrismaticDH( #Fake joint to mimic tool frame
                 alpha=self.DH_TABLE[7][0], 
                 a=self.DH_TABLE[7][1], 
-                d=self.DH_TABLE[7][2], 
-                offset=self.DH_TABLE[7][3], qlim=np.array([0, 0])
+                q=self.DH_TABLE[7][2], 
+                offset=self.DH_TABLE[7][3], 
+                qlim=np.array([0.1, 0.1])
                 ) 
         ]
 
@@ -109,6 +110,7 @@ class RPPRRRManipulator(DHRobot):
             links, 
             name="RPPRRR Manipulator",
         )
+
 
     def forward_kinematics(self, joint_angles: list) -> SE3:
         '''
@@ -125,7 +127,7 @@ class RPPRRRManipulator(DHRobot):
             - Automatically adds a zero to the start and end of `joint_angles` to account for the placeholder joints used in the model to represent the base and end effector
             - If a solution cannot be found None will be returned
         '''
-        if type(joint_angles) is not list:
+        if not isinstance(joint_angles, list):
             raise TypeError(f"{type(joint_angles)} is not valid. {list} expected.")
 
         try:
@@ -148,8 +150,9 @@ class RPPRRRManipulator(DHRobot):
     def inverse_kinematics(self, transform: np.ndarray, display=False) -> IKSolution:
         '''
         Given a desired positon P and Orientation R, in the form of a SE3 transformation matrix, will return whether the manipulator can reach and the joint angles to do so.
+        If the desired position and orientation are out of reach, method will return the closest solution
 
-        :param transform: Transformation matrix in a compatiable format
+        :param transform: Transformation matrix as a numpy ndarray.
         :type transform: transform matrix
         '''
         try:
@@ -171,13 +174,37 @@ class RPPRRRManipulator(DHRobot):
         except Exception as e:
             print("An error occured while calculating inverse kinematics: ", e)
             
-    def joint_velcoities(self, joint_angles: list, joint_velocities: list):
+    def joint_velocities(self, joint_angles: list, joint_velocities: list):
         '''
         Given a set of joint angles and velocitiies, will return a jacobian matrix of linear and angular velocities
         '''
         #TODO finish commenting, add type checking, add joint angle adjustments
-        jacobian_matrix = self.jacob0(joint_angles)
+        # Type checking for joing_angles
+        if not isinstance(joint_angles, list):
+            raise TypeError(f"{type(joint_angles)} is not valid. {list} expected.")
+        try:
+            if len(joint_angles) == 6:
+                joint_angles.insert(0, 0)
+                joint_angles.append(0)
+            else:
+                raise Exception("Incorrect array size. 6 joint angles are required")
+        except Exception as e:
+            print("An error occured: ", e)
         
+        #Type checking for joint_velocities
+        if not isinstance(joint_velocities, list):
+            raise TypeError(f"{type(joint_angles)} is not valid. {list} expected.")
+
+        try:
+            if len(joint_velocities) == 6:
+                joint_velocities.insert(0, 0)
+                joint_velocities.append(0)
+            else:
+                raise Exception("Incorrect array size. 6 joint angles are required")
+        except Exception as e:
+            print("An error occured: ", e)
+        
+        jacobian_matrix = self.jacob0(joint_angles)
         velocites = jacobian_matrix @ joint_velocities
         linear_velocities = velocites[:3]
         angular_velocities = velocites[3:]
@@ -195,8 +222,6 @@ class RPPRRRManipulator(DHRobot):
         torques = self.pay(wrench, joint_angles, jacobian_matrix, 0)
         return torques
     
-
-        
 
     class RPPRRRManipulatorSympy():
         def __init__(self):
@@ -282,12 +307,12 @@ class RPPRRRManipulator(DHRobot):
             self.TB_6 = self.TB_5*self.T5_6
             self.TB_T = self.TB_6*self.T6_T
             
-            print(self.TB_2.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
-            print(self.TB_3.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
-            print(self.TB_4.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
-            print(self.TB_5.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
-            print(self.TB_6.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
-            print(self.TB_T.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
+            # print(self.TB_2.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
+            # print(self.TB_3.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
+            # print(self.TB_4.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
+            # print(self.TB_5.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
+            # print(self.TB_6.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
+            # print(self.TB_T.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
             
             self.TB_T = self.TB_1*self.T1_2*self.T2_3*self.T3_4*self.T4_5*self.T5_6*self.T6_T
             self.TB_T_FK = self.TB_T.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0})
