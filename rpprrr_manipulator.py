@@ -127,17 +127,9 @@ class RPPRRRManipulator(SerialLink):
             - Automatically adds a zero to the start and end of `joint_angles` to account for the placeholder joints used in the model to represent the base and end effector
             - If a solution cannot be found None will be returned
         '''
-        if not isinstance(joint_angles, list):
-            raise TypeError(f"{type(joint_angles)} is not valid. {list} expected.")
-
-        try:
-            if len(joint_angles) == 6:
-                joint_angles.insert(0, 0)
-                joint_angles.append(0)
-            else:
-                raise Exception("Incorrect array size. 6 joint angles are required")
-        except Exception as e:
-            print("An error occured: ", e)
+        
+        self.joint_type_check(joint_angles, list)
+        joint_angles = self.correct_list_size(joint_angles)
 
         try: 
             fk_sol = self.fkine(joint_angles)
@@ -154,7 +146,12 @@ class RPPRRRManipulator(SerialLink):
 
         :param transform: Transformation matrix as a numpy ndarray.
         :type transform: transform matrix
+        
+        :return ik_solution: IKSolution containing success, joint values, iterations and reason
+        :type ik_solution: IKSolution
         '''
+        
+        self.transform_type_check(transform)
         try:
             ik_solution = self.ikine_LM(transform)
             if display:
@@ -177,32 +174,27 @@ class RPPRRRManipulator(SerialLink):
     def joint_velocities(self, joint_angles: list, joint_velocities: list):
         '''
         Given a set of joint angles and velocitiies, will return a jacobian matrix of linear and angular velocities
+        
+        :param joint_angles: list of joint angles at which the joint velocities will be calculated at
+        :type joint_angles: list
+        :param joint_velocities: list of joint velocities of which the tool velcoity can then be calculated with
+        :type joint_velocities: list
+        
+        :return jacobian_matrix: Jacobian matrix operator
+        :type jacobian_matrix: numpy.ndarray
+        :return linear_velocities: Calculated linear velocities
+        :type linear_velocities: list
+        :return angular velocities: Calculated angular velocities
+        :type angular_velocities: list
         '''
-        #TODO finish commenting, add type checking, add joint angle adjustments
+
         # Type checking for joing_angles
-        if not isinstance(joint_angles, list):
-            raise TypeError(f"{type(joint_angles)} is not valid. {list} expected.")
-        try:
-            if len(joint_angles) == 6:
-                joint_angles.insert(0, 0)
-                joint_angles.append(0)
-            else:
-                raise Exception("Incorrect array size. 6 joint angles are required")
-        except Exception as e:
-            print("An error occured: ", e)
+        self.joint_type_check(joint_angles, list) # Will raise an exception if incorrect type
+        joint_angles = self.correct_list_size(joint_angles) #Check list has sufficient joint variables, add 0s to start/end for 'fake' joints if not already present
         
         #Type checking for joint_velocities
-        if not isinstance(joint_velocities, list):
-            raise TypeError(f"{type(joint_angles)} is not valid. {list} expected.")
-
-        try:
-            if len(joint_velocities) == 6:
-                joint_velocities.insert(0, 0)
-                joint_velocities.append(0)
-            else:
-                raise Exception("Incorrect array size. 6 joint angles are required")
-        except Exception as e:
-            print("An error occured: ", e)
+        self.joint_type_check(joint_velocities, list) # Will raise an exception if incorrect type
+        joint_velocities = self.correct_list_size(joint_velocities) #Check list has sufficient joint variables, add 0s to start/end for 'fake' joints if not already present
         
         jacobian_matrix = self.jacob0(joint_angles)
         velocites = jacobian_matrix @ joint_velocities
@@ -213,14 +205,87 @@ class RPPRRRManipulator(SerialLink):
     
     def static_torques(self, mass, g, transform):
         '''
-        Give a point mass load, applied at the origin of the tool frame, will calculate the static force and torque at each joint for a set transform
+        Given a point mass load, applied at the origin of the tool frame, will calculate the static force and torque at each joint for a set transform
         '''
+        
         #TODO finish commenting, add type checking
         joint_angles = self.inverse_kinematics(transform).q
         jacobian_matrix = self.jacob0(joint_angles)
         wrench = np.array([0, mass*g, 0, 0, 0, 0]).T
         torques = self.pay(wrench, joint_angles, jacobian_matrix, 0)
         return torques
+    
+    def transform_type_check(self, var):
+        '''
+        Given a transform, will return a bool as to whether it is a valid type#
+        
+        :param var: The variable to check validity of type
+        :type var: Any valid transform type, ndarray, SE3, etc.
+        
+        :return bool: validation of type
+        '''
+        
+        if isinstance(var, np.ndarray) or isinstance(var, SE3):
+            return True
+        else:
+            raise TypeError(f"{type(var)} is not valid. {np.ndarray}, or, {type(SE3)} expected.")
+            return False
+    
+    def joint_type_check(self, var, output, alt_output=None):
+        '''
+        Given a var and desired type, will return Bool whether type is correct. ALternative output can be used when more than one type is accetable, eg. SE3 and ndarray
+        
+        :param var: The variable to check type of
+        :type var: Any
+        
+        :param output: The desired type to check against
+        :type output: Any
+        
+        :return bool: Boolean of whether type is correct
+        '''
+        
+        if not isinstance(var, output):
+            raise TypeError(f"{type(var)} is not valid. {output} expected.")
+        else:
+            return True
+        
+    def correct_list_size(self, input_list):
+        '''
+        Given a list of size six (6), will return an amended list with a leading and following 0 from the original list
+        
+        :param input_list: A list to correct to size eight (8) from six
+        :type input_list: List
+        
+        :return input_list: input_list with a zero added to the start and end
+        :type input_list: list
+        '''
+        
+        try:
+            if len(input_list) == 6:
+                input_list.insert(0, 0)
+                input_list.append(0)
+            else:
+                raise Exception("Incorrect array size. 6 joint angles are required")
+        except Exception as e:
+            print("An error occured: ", e)
+        return input_list
+        
+    def ik_error(self, transform: SE3, ik_solution: IKSolution):
+        '''
+        Given a transform and IK Solution, will return the error
+        
+        :param transform: The transform the IK solution is based on
+        :type transform: SE3 and numpy.ndarray
+        
+        :return ik_error: numerical error
+        :type ik_error: float
+        '''
+        
+        self.transform_type_check(transform)
+        self.joint_type_check(ik_solution, IKSolution)
+        ik_error = np.linalg.norm(transform - self.fkine(ik_solution.q))
+        return ik_error
+        
     
 
     class RPPRRRManipulatorSympy():

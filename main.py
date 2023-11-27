@@ -85,15 +85,23 @@ if __name__ == "__main__":
     # Now that we have confirmed a very small error in our IK we can use it to solve the transforms specified in 'Step 2: Inverse Kinematics (IK)'
     # Solve each transform specified in the breif. Q limits applied to manipualtor at initialisation
     ik_sol_1 = manipulator.inverse_kinematics(STEP2_IK_TRANSFORM_1, display=True)
+    ik_sol_1_error = manipulator.ik_error(STEP2_IK_TRANSFORM_1, ik_sol_1)
+    print('IK Error for Transform 1: ', ik_sol_1_error)
+    
     ik_sol_2 = manipulator.inverse_kinematics(STEP2_IK_TRANSFORM_2, display=True)
+    ik_sol_2_error = manipulator.ik_error(STEP2_IK_TRANSFORM_2, ik_sol_2)
+    print('IK Error for Transform 2: ', ik_sol_2_error)
+    
     ik_sol_3 = manipulator.inverse_kinematics(STEP2_IK_TRANSFORM_3, display=True)
+    ik_sol_3_error = manipulator.ik_error(STEP2_IK_TRANSFORM_3, ik_sol_3)
+    print('IK Error for Transform 1: ', ik_sol_3_error)
     
     
     #STEP 3: Velocity and Static Force
     #Calculate Jacobian, Velocities and Static Forces, print the Linear and Angular velocities respetively
     jacobian, linear_velocities, angular_velocities = manipulator.joint_velocities(joint_angles = STEP3_JOINT_ANGLES, joint_velocities=STEP3_JOINT_VELOCITIES)
-    print(f'\nFor the the given joint velocities: {STEP3_JOINT_VELOCITIES}, the resultant velocities on the tool frame are as follows:')
     print('Jacobian Operator: \n', jacobian)
+    print(f'\nFor the the given joint velocities: {STEP3_JOINT_VELOCITIES}, the resultant velocities on the tool frame are as follows:')
     print("Linear Velocities [X, Y, Z]:", linear_velocities)
     print("Angular Velocities [X, Y, Z]:",angular_velocities)
     
