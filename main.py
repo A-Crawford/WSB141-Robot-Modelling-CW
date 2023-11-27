@@ -1,11 +1,4 @@
-import RPPRRR_Manipulator_RTB 
-import roboticstoolbox as rtbf
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d
-from spatialmath import SE3
 import numpy as np
-import sympy as sy
-
 from rpprrr_manipulator import RPPRRRManipulator
 
 STEP1_FK_JOINT_ANGLES = [0, 0.5, 0, 0, 0, 0]
@@ -94,7 +87,7 @@ if __name__ == "__main__":
     
     ik_sol_3 = manipulator.inverse_kinematics(STEP2_IK_TRANSFORM_3, display=True)
     ik_sol_3_error = manipulator.ik_error(STEP2_IK_TRANSFORM_3, ik_sol_3)
-    print('IK Error for Transform 1: ', ik_sol_3_error)
+    print('IK Error for Transform 3: ', ik_sol_3_error)
     
     
     #STEP 3: Velocity and Static Force
@@ -105,7 +98,7 @@ if __name__ == "__main__":
     print("Linear Velocities [X, Y, Z]:", linear_velocities)
     print("Angular Velocities [X, Y, Z]:",angular_velocities)
     
-    #Utilise previously calculated jacobian to find the torque acting on each joint wuith a point mass of 0.2kg at the tool frame
+    #Find the torque acting on each joint wuith a point mass of 0.2kg at the tool frame, at the specific transform
     joint_torques = manipulator.static_torques(mass=0.2, g=9.8, transform=STEP3_STATIC_FORCE_TRANSFORM)
     print('Joint torques: ', joint_torques)
     

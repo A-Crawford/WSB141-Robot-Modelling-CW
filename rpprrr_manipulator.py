@@ -206,14 +206,27 @@ class RPPRRRManipulator(SerialLink):
     def static_torques(self, mass, g, transform):
         '''
         Given a point mass load, applied at the origin of the tool frame, will calculate the static force and torque at each joint for a set transform
-        '''
         
-        #TODO finish commenting, add type checking
+        :param mass: mass applied at origin of tool frame
+        :type mass: float
+        :param g: force of gravity in m/s
+        :type g: float
+        :param transform: transform for static pose in which torques are to be calculated at
+        :type transform: SE3 or numpy.ndarray
+        
+        :return torques: caculated torque values for each joint
+        :type torques: list
+        '''
+        #Type cheeck transform
+        self.transform_type_check(transform)
+        
+        # Calculate joint angles from transform using inverse_kinematics
+        # Joint angles used to declare wrench variable 
         joint_angles = self.inverse_kinematics(transform).q
-        jacobian_matrix = self.jacob0(joint_angles)
-        wrench = np.array([0, mass*g, 0, 0, 0, 0]).T
-        torques = self.pay(wrench, joint_angles, jacobian_matrix, 0)
-        return torques
+        jacobian_matrix = self.jacob0(joint_angles) # RBT function to compute jacobian operator
+        wrench = np.array([0, mass*g, 0, 0, 0, 0]).T # X, Y, Z, Rx, Ry, Rz. Only gravity acting on the Y axis
+        torques = self.pay(wrench, joint_angles, jacobian_matrix, 0) #RBT function to calculate torques from payload
+        return torques # return calculated values
     
     def transform_type_check(self, var):
         '''
@@ -303,17 +316,30 @@ class RPPRRRManipulator(SerialLink):
             self.D2 = sy.symbols('D2')
             self.D3 = sy.symbols('D3')
 
+            # self.DH_TABLE = sy.Matrix(
+            # [   #alpha, A, D, theta
+            #     [0, 0, self.L0, 0],
+            #     [0, 0, 0, self.THETA1],
+            #     [0, 0, self.D2, 0],
+            #     [np.radians(90), 0, self.D3, 0],
+            #     [0, 0, self.L1, self.THETA4],
+            #     [np.radians(90), self.L2, self.L5, self.THETA5],
+            #     [0, 0, self.L3, self.THETA6],
+            #     [0, 0, self.L4, 0]
+            # ])
+            
             self.DH_TABLE = sy.Matrix(
-            [   #alpha, A, D, theta
-                [0, 0, self.L0, 0],
-                [0, 0, 0, self.THETA1],
-                [0, 0, self.D2, 0],
-                [np.radians(90), 0, self.D3, 0],
-                [0, 0, self.L1, self.THETA4],
-                [np.radians(90), self.L2, self.L5, self.THETA5],
-                [0, 0, self.L3, self.THETA6],
-                [0, 0, self.L4, 0]
-            ])
+                [
+                    [0, 0, self.L0, 0],
+                    [0, 0, 0, self.THETA1],
+                    [0, 0, self.D2, 0],
+                    [np.radians(90), 0, self.D3, 0],
+                    [0, 0, self.L1, self.THETA4],
+                    [np.radians(90), self.L2, self.L5, self.THETA5],
+                    [0, 0, self.L3, self.THETA6],
+                    [0, 0, self.L4, 0]
+                ]
+            )
             
             
             self.TB_1 = sy.Matrix([
@@ -380,5 +406,18 @@ class RPPRRRManipulator(SerialLink):
             # print(self.TB_T.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
             
             self.TB_T = self.TB_1*self.T1_2*self.T2_3*self.T3_4*self.T4_5*self.T5_6*self.T6_T
-            self.TB_T_FK = self.TB_T.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0})
+            self.TB_T_FK = self.TB_T.subs({
+                self.L0: 0.10,
+                self.L1: 0.20,
+                self.L2: 0.30,
+                self.L3: 0.30,
+                self.L4: 0.10,
+                self.L5: 0.05,
+                self.THETA1: 0,
+                self.D2: 0.5,
+                self.D3: 0,
+                self.THETA4: 0,
+                self.THETA5: 0,
+                self.THETA6: 0
+            })
             
