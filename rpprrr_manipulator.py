@@ -405,7 +405,7 @@ class RPPRRRManipulator(SerialLink):
             # print(self.TB_6.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
             # print(self.TB_T.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
             
-            self.TB_T = self.TB_1*self.T1_2*self.T2_3*self.T3_4*self.T4_5*self.T5_6*self.T6_T
+            self.TB_T = self.TB_1.cross(self.TB_1).cross(self.T1_2).cross(self.T2_3).cross(self.T3_4).cross(self.T4_5).cross(self.T5_6).cross(self.T6_T)
             self.TB_T_FK = self.TB_T.subs({
                 self.L0: 0.10,
                 self.L1: 0.20,

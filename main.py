@@ -73,6 +73,11 @@ if __name__ == "__main__":
     
     print(f'\nRBT IK Error: {rbt_fk_ik_error}\nSympy FK Error: {sympy_fk_ik_error}')
     
+    print(sympy_joint_angles.q)
+    print(manipulator_ik.q)
+    manipulator.plot(sympy_joint_angles.q, block=True)
+    manipulator.plot(manipulator_ik.q, block=True)
+    
     
     #STEP 2: Inverse Kinematics (IK)
     # Now that we have confirmed a very small error in our IK we can use it to solve the transforms specified in 'Step 2: Inverse Kinematics (IK)'
