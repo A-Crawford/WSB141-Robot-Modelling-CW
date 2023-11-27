@@ -58,7 +58,7 @@ if __name__ == "__main__":
     manipulator_fk = manipulator.forward_kinematics(STEP1_FK_JOINT_ANGLES)
     
     # Sympy Solution - Calculated within the initialisation of the class
-    sympy_manipulator_fk = np.round(np.array(sympy_manipulator.TB_T_FK).astype(np.float64), 2)
+    sympy_manipulator_fk = np.array(sympy_manipulator.TB_T_FK).astype(np.float64)
     
     print(f"RBT FK Solution:\n {manipulator_fk}\nSympy FK Solution:\n {sympy_manipulator_fk}") #Display solutions to the user
     
@@ -72,12 +72,7 @@ if __name__ == "__main__":
     sympy_fk_ik_error = np.linalg.norm(np.array(sympy_manipulator.TB_T_FK).astype(np.float64) - manipulator.fkine(sympy_joint_angles.q))
     
     print(f'\nRBT IK Error: {rbt_fk_ik_error}\nSympy FK Error: {sympy_fk_ik_error}')
-    
-    print(sympy_joint_angles.q)
-    print(manipulator_ik.q)
-    manipulator.plot(sympy_joint_angles.q, block=True)
-    manipulator.plot(manipulator_ik.q, block=True)
-    
+
     
     #STEP 2: Inverse Kinematics (IK)
     # Now that we have confirmed a very small error in our IK we can use it to solve the transforms specified in 'Step 2: Inverse Kinematics (IK)'
