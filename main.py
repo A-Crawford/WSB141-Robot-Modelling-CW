@@ -57,8 +57,9 @@ if __name__ == "__main__":
     # Robotics Toolbox solution
     manipulator_fk = manipulator.forward_kinematics(STEP1_FK_JOINT_ANGLES)
     
+    
     # Sympy Solution - Calculated within the initialisation of the class
-    sympy_manipulator_fk = np.array(sympy_manipulator.TB_T_FK).astype(np.float64)
+    sympy_manipulator_fk = np.round(np.array(sympy_manipulator.TB_T_FK).astype(np.float64), 2)
     
     print(f"RBT FK Solution:\n {manipulator_fk}\nSympy FK Solution:\n {sympy_manipulator_fk}") #Display solutions to the user
     
@@ -73,11 +74,10 @@ if __name__ == "__main__":
     
     print(f'\nRBT IK Error: {rbt_fk_ik_error}\nSympy FK Error: {sympy_fk_ik_error}')
 
-    
     #STEP 2: Inverse Kinematics (IK)
     # Now that we have confirmed a very small error in our IK we can use it to solve the transforms specified in 'Step 2: Inverse Kinematics (IK)'
     # Solve each transform specified in the breif. Q limits applied to manipualtor at initialisation
-    ik_sol_1 = manipulator.inverse_kinematics(STEP2_IK_TRANSFORM_1, display=True)
+    ik_sol_1 = manipulator.ikine
     ik_sol_1_error = manipulator.ik_error(STEP2_IK_TRANSFORM_1, ik_sol_1)
     print('IK Error for Transform 1: ', ik_sol_1_error)
     
@@ -89,6 +89,7 @@ if __name__ == "__main__":
     ik_sol_3_error = manipulator.ik_error(STEP2_IK_TRANSFORM_3, ik_sol_3)
     print('IK Error for Transform 3: ', ik_sol_3_error)
     
+    manipulator.plot(ik_sol_1.q, block=True)
     
     #STEP 3: Velocity and Static Force
     #Calculate Jacobian, Velocities and Static Forces, print the Linear and Angular velocities respetively

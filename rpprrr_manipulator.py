@@ -150,8 +150,8 @@ class RPPRRRManipulator(SerialLink):
         :return ik_solution: IKSolution containing success, joint values, iterations and reason
         :type ik_solution: IKSolution
         '''
-        
-        self.transform_type_check(transform)
+        return self.ikine_LM(transform)
+        #self.transform_type_check(transform)
         try:
             ik_solution = self.ikine_LM(transform)
             if display:
@@ -239,7 +239,7 @@ class RPPRRRManipulator(SerialLink):
         '''
         
         if isinstance(var, np.ndarray) or isinstance(var, SE3):
-            return True
+            return var
         else:
             raise TypeError(f"{type(var)} is not valid. {np.ndarray}, or, {type(SE3)} expected.")
             return False
@@ -414,6 +414,5 @@ class RPPRRRManipulator(SerialLink):
                 self.THETA6: 0
             })
             
-            print(np.round(np.array(self.TB_T_FK)).astype(float64))
             
             
