@@ -340,7 +340,6 @@ class RPPRRRManipulator(SerialLink):
                     [0, 0, self.L4, 0]
                 ]
             )
-                        
             
             self.TB_1 = sy.Matrix([
                 [sy.cos(self.DH_TABLE[0, 3]), -sy.sin(self.DH_TABLE[0, 3]), 0, self.DH_TABLE[0, 1]],
@@ -398,21 +397,6 @@ class RPPRRRManipulator(SerialLink):
                 [0, 0, 0, 1]
             ])
             
-            self.TB_2 = self.TB_1*self.T1_2
-            self.TB_3 = self.TB_2*self.T2_3
-            self.TB_4 = self.TB_3*self.T3_4
-            self.TB_5 = self.TB_4*self.T4_5
-            self.TB_6 = self.TB_5*self.T5_6
-            self.TB_T = self.TB_6*self.T6_T
-            
-            print(self.TB_1.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
-            print(self.T1_2.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
-            print(self.T2_3.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
-            print(self.T3_4.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
-            print(self.T4_5.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
-            print(self.T5_6.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
-            print(self.T6_T.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
-            print(self.TT_T.subs({self.L0:0.1, self.L1:0.2, self.L2:0.3, self.L3:0.3, self.L4:0.1, self.L5:0.05, self.THETA1:0, self.D2:0.5, self.D3:0, self.THETA4:0, self.THETA5:0, self.THETA6:0}))
             
             self.TB_T = self.TB_1*self.T1_2*self.T2_3*self.T3_4*self.T4_5*self.T5_6*self.T6_T*self.TT_T
             self.TB_T_FK = self.TB_T.subs({
@@ -429,4 +413,7 @@ class RPPRRRManipulator(SerialLink):
                 self.THETA5: 0,
                 self.THETA6: 0
             })
+            
+            print(np.round(np.array(self.TB_T_FK)).astype(float64))
+            
             

@@ -101,4 +101,3 @@ if __name__ == "__main__":
     #Find the torque acting on each joint wuith a point mass of 0.2kg at the tool frame, at the specific transform
     joint_torques = manipulator.static_torques(mass=0.2, g=9.8, transform=STEP3_STATIC_FORCE_TRANSFORM)
     print('Joint torques: ', joint_torques)
-    
