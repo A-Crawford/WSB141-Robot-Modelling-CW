@@ -147,8 +147,8 @@ class RPPRRRManipulator(SerialLink):
         :param transform: Transformation matrix as a numpy ndarray.
         :type transform: transform matrix
         
-        :return ik_solution: IKSolution containing success, joint values, iterations and reason
-        :type ik_solution: IKSolution
+        :return valid_solutions, invalid solutions: tuple of two lists of soltions which returned Ture and False for valid respectively 
+        :type tuple<list<ik_solution>>: IKSolution
         ''' 
         
         print("Calculating Inverse Kinematics for the folllowing transformation matrix:\n", transform)
