@@ -141,7 +141,7 @@ class RPPRRRManipulator(SerialLink):
     
     def inverse_kinematics(self, transform: np.ndarray, display=False) -> IKSolution:
         '''
-        Given a desired positon P and Orientation R, in the form of a SE3 transformation matrix, will return whether the manipulator can reach and the joint angles to do so.
+        Given a desired positon P and Orientation R, in the form of a SE3 transformation matrix, will return whether the manipulator can reach and all the solutions to do so. Has a 100 maximum search limit.
         If the desired position and orientation are out of reach, method will return the closest solution
 
         :param transform: Transformation matrix as a numpy ndarray.
@@ -149,27 +149,42 @@ class RPPRRRManipulator(SerialLink):
         
         :return ik_solution: IKSolution containing success, joint values, iterations and reason
         :type ik_solution: IKSolution
-        '''
-        return self.ikine_LM(transform)
-        #self.transform_type_check(transform)
-        try:
-            ik_solution = self.ikine_LM(transform)
-            if display:
-                print(
-                    f'''
-                    Inverse Kinematic solvable: {ik_solution.success} '''
-                )
-                if ik_solution.success is not True:
-                    print(f'''
-                        Closest possible solution: {ik_solution.q.T}  
-                        ''')
-                else:
-                    print(f'''
-                        Solution: {ik_solution.q.T}
-                    ''')
-            return ik_solution
-        except Exception as e:
-            print("An error occured while calculating inverse kinematics: ", e)
+        ''' 
+        
+        print("Calculating Inverse Kinematics for the folllowing transformation matrix:\n", transform)
+        
+        self.transform_type_check(transform)
+        self.solutions = []
+        for x in range(0, 100):
+            ik = self.ikine_LM(transform)
+            self.solutions.append(ik)
+        
+        valid_solutions = []
+        invalid_solutions = []
+        
+        for x in self.solutions:
+            if x.success is True:
+                valid_solutions.append(x)
+            else:
+                invalid_solutions.append(x)
+                
+        if len(valid_solutions) > len(invalid_solutions):          
+            if len(valid_solutions) > 99:
+                print("Over 99 Kinematic Solutions found.")
+            else:
+                print(f"{len(valid_solutions)} Inverse Kinematic Solutions found.")
+                    
+            ans = input("Do you wish to display all solutions? Y/N ").upper()
+            if ans == 'Y':
+                for x in valid_solutions:
+                    print(x)
+        else:
+            print("Inverse Kinematic solution not possible.")
+            ans = input("Do you wish to display closest possible solution? Y/N ").upper()
+            if ans == 'Y':
+                print(invalid_solutions[0])
+                    
+        return valid_solutions, invalid_solutions
             
     def joint_velocities(self, joint_angles: list, joint_velocities: list):
         '''
