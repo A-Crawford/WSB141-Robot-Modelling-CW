@@ -314,7 +314,25 @@ class RPPRRRManipulator(SerialLink):
         ik_error = np.linalg.norm(transform - self.fkine(ik_solution.q))
         return ik_error
         
+    def compare_len(self, list1, list2):
+        return len(list1) > len(list2)
     
+    def step3_inverse_kinematic_solver(self, transform):
+        index = 1
+        ik_sol_1 = self.inverse_kinematics(transform, display=True)
+        if self.compare_len(ik_sol_1[0], ik_sol_1[1]):
+            index = 0
+        
+        lowest_error = 100
+        best_sol = IKSolution
+        for x in ik_sol_1[index]:
+            ik_sol_1_error = self.ik_error(transform, x)
+            if ik_sol_1_error < lowest_error:
+                lowest_error = ik_sol_1_error
+                best_sol = x
+                
+        print(f"Error for the IK solution {best_sol.q} which has the lowest error of: {lowest_error}")
+        return best_sol, ik_sol_1_error
 
     class RPPRRRManipulatorSympy():
         def __init__(self):

@@ -77,17 +77,18 @@ if __name__ == "__main__":
     # STEP 2: Inverse Kinematics (IK)
     # Now that we have confirmed a very small error in our IK we can use it to solve the transforms specified in 'Step 2: Inverse Kinematics (IK)'
     # Solve each transform specified in the breif. Q limits applied to manipualtor at initialisation
-    ik_sol_1 = manipulator.inverse_kinematics(STEP2_IK_TRANSFORM_1, display=True)
-    ik_sol_1_error = manipulator.ik_error(STEP2_IK_TRANSFORM_1, ik_sol_1)
-    print('IK Error for Transform 1: ', ik_sol_1_error)
+    manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_1)
+    manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_2)
+    manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_3)
     
-    ik_sol_2 = manipulator.inverse_kinematics(STEP2_IK_TRANSFORM_2, display=True)
-    ik_sol_2_error = manipulator.ik_error(STEP2_IK_TRANSFORM_2, ik_sol_2)
-    print('IK Error for Transform 2: ', ik_sol_2_error)
     
-    ik_sol_3 = manipulator.inverse_kinematics(STEP2_IK_TRANSFORM_3, display=True)
-    ik_sol_3_error = manipulator.ik_error(STEP2_IK_TRANSFORM_3, ik_sol_3)
-    print('IK Error for Transform 3: ', ik_sol_3_error)
+    # ik_sol_2, ik_invalid_sol_2 = manipulator.inverse_kinematics(STEP2_IK_TRANSFORM_2, display=True)
+    # ik_sol_2_error = manipulator.ik_error(STEP2_IK_TRANSFORM_2, ik_sol_2[0])
+    # print('IK Error for Transform 2: ', ik_sol_2_error)
+    
+    # ik_sol_3, ik_invalid_sol_3 = manipulator.inverse_kinematics(STEP2_IK_TRANSFORM_3, display=True)
+    # ik_sol_3_error = manipulator.ik_error(STEP2_IK_TRANSFORM_3, ik_sol_3[0])
+    # print('IK Error for Transform 3: ', ik_sol_3_error)
     
     # print(ik_sol_3)
     
