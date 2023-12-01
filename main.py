@@ -76,19 +76,18 @@ if __name__ == "__main__":
     # STEP 2: Inverse Kinematics (IK)
     # Now that we have confirmed a very small error in our IK we can use it to solve the transforms specified in 'Step 2: Inverse Kinematics (IK)'
     # Solve each transform specified in the breif. Q limits applied to manipualtor at initialisation
-    best_sol, error = manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_1)
-    manipulator.plot(best_sol.q, block=True)
-    manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_2)
-    manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_3)
+    # best_sol_1, error_1 = manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_1)
+    # best_sol_2, error_2 = manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_2)
+    # best_sol_3, error_3 = manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_3)
     
-    # #STEP 3: Velocity and Static Force
-    # #Calculate Jacobian, Velocities and Static Forces, print the Linear and Angular velocities respetively
-    # jacobian, linear_velocities, angular_velocities = manipulator.joint_velocities(joint_angles = STEP3_JOINT_ANGLES, joint_velocities=STEP3_JOINT_VELOCITIES)
-    # print('Jacobian Operator: \n', jacobian)
-    # print(f'\nFor the the given joint velocities: {STEP3_JOINT_VELOCITIES}, the resultant velocities on the tool frame are as follows:')
-    # print("Linear Velocities [X, Y, Z]:", linear_velocities)
-    # print("Angular Velocities [X, Y, Z]:",angular_velocities)
+    #STEP 3: Velocity and Static Force
+    #Calculate Jacobian, Velocities and Static Forces, print the Linear and Angular velocities respetively
+    jacobian, linear_velocities, angular_velocities = manipulator.joint_velocities(joint_angles = STEP3_JOINT_ANGLES, joint_velocities=STEP3_JOINT_VELOCITIES)
+    print('Jacobian Operator: \n', jacobian)
+    print(f'\nFor the the given joint velocities: {STEP3_JOINT_VELOCITIES}, the resultant velocities on the tool frame are as follows:')
+    print("Linear Velocities [X, Y, Z]:", linear_velocities)
+    print("Angular Velocities [X, Y, Z]:",angular_velocities)
     
-    # #Find the torque acting on each joint wuith a point mass of 0.2kg at the tool frame, at the specific transform
-    # joint_torques = manipulator.static_torques(mass=0.2, g=9.8, transform=STEP3_STATIC_FORCE_TRANSFORM)
-    # print('Joint torques: ', joint_torques)
+    #Find the torque acting on each joint wuith a point mass of 0.2kg at the tool frame, at the specific transform
+    joint_torques = manipulator.static_torques(mass=0.2, g=9.8, transform=STEP3_STATIC_FORCE_TRANSFORM)
+    print('Joint torques: ', joint_torques)

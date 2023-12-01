@@ -4,12 +4,12 @@
 """
 
 import numpy as np
-from roboticstoolbox import SerialLink, RevoluteDH, PrismaticDH, IKSolution
+from roboticstoolbox import DHRobot, RevoluteMDH, PrismaticMDH, IKSolution
 from spatialmath import SE3
 import sympy as sy
 
 
-class RPPRRRManipulator(SerialLink):
+class RPPRRRManipulator(DHRobot):
     """
     Class to model and interact with RPPRRR Manipulator as defined in 23WSB141 - Introduction To Robotics Coursework
     """
@@ -43,15 +43,15 @@ class RPPRRRManipulator(SerialLink):
         )
 
         links = [
-            PrismaticDH(# Fake joint to mimic base frame 
+            RevoluteMDH(# Fake joint to mimic base frame 
                 alpha=self.DH_TABLE[0][0], 
                 a=self.DH_TABLE[0][1], 
-                q=self.DH_TABLE[0][2], 
+                d=self.DH_TABLE[0][2], 
                 offset=self.DH_TABLE[0][3], 
-                qlim=np.array([0.1, 0.1])
+                qlim=np.array([0, 0])
                 ), 
 
-            RevoluteDH(
+            RevoluteMDH(
                 alpha=self.DH_TABLE[1][0], 
                 a=self.DH_TABLE[1][1], 
                 d=self.DH_TABLE[1][2], 
@@ -59,14 +59,14 @@ class RPPRRRManipulator(SerialLink):
                 qlim=np.array([np.radians(-180), np.radians(180)])
                 ), 
 
-            PrismaticDH(
+            PrismaticMDH(
                 alpha=self.DH_TABLE[2][0], 
                 a=self.DH_TABLE[2][1], 
                 q=self.DH_TABLE[2][2], 
                 offset=self.DH_TABLE[2][3], 
                 qlim=np.array([0.0, 0.5])
                 ),
-            PrismaticDH(
+            PrismaticMDH(
                 alpha=self.DH_TABLE[3][0], 
                 a=self.DH_TABLE[3][1], 
                 q=self.DH_TABLE[3][2], 
@@ -74,21 +74,21 @@ class RPPRRRManipulator(SerialLink):
                 qlim=np.array([-0.1, 0.1])
                 ),
 
-            RevoluteDH(
+            RevoluteMDH(
                 alpha=self.DH_TABLE[4][0],
                 a=self.DH_TABLE[4][1], 
                 d=self.DH_TABLE[4][2], 
                 offset=self.DH_TABLE[4][3], 
                 qlim=np.array([np.radians(-90), np.radians(90)])
                 ),
-            RevoluteDH(
+            RevoluteMDH(
                 alpha=self.DH_TABLE[5][0], 
                 a=self.DH_TABLE[5][1], 
                 d=self.DH_TABLE[5][2], 
                 offset=self.DH_TABLE[5][3], 
                 qlim=np.array([np.radians(-180), np.radians(180)])
                 ),
-            RevoluteDH(
+            RevoluteMDH(
                 alpha=self.DH_TABLE[6][0], 
                 a=self.DH_TABLE[6][1], 
                 d=self.DH_TABLE[6][2], 
@@ -96,12 +96,12 @@ class RPPRRRManipulator(SerialLink):
                 qlim=np.array([np.radians(-90), np.radians(90)])
                 ),
 
-            PrismaticDH( #Fake joint to mimic tool frame
+            RevoluteMDH( #Fake joint to mimic tool frame
                 alpha=self.DH_TABLE[7][0], 
                 a=self.DH_TABLE[7][1], 
                 q=self.DH_TABLE[7][2], 
                 offset=self.DH_TABLE[7][3], 
-                qlim=np.array([0.1, 0.1])
+                qlim=np.array([0, 0])
                 ) 
         ]
 
@@ -237,7 +237,19 @@ class RPPRRRManipulator(SerialLink):
         
         # Calculate joint angles from transform using inverse_kinematics
         # Joint angles used to declare wrench variable 
-        joint_angles = self.inverse_kinematics(transform).q
+        index = 1
+        ik_sol_1 = self.inverse_kinematics(transform, display=True)
+        if self.compare_len(ik_sol_1[0], ik_sol_1[1]):
+            index = 0
+        
+        lowest_error = 100
+        best_sol = IKSolution
+        for x in ik_sol_1[index]:
+            ik_sol_1_error = self.ik_error(transform, x)
+            if ik_sol_1_error < lowest_error:
+                lowest_error = ik_sol_1_error
+                best_sol = x
+        joint_angles = best_sol.q
         jacobian_matrix = self.jacob0(joint_angles) # RBT function to compute jacobian operator
         wrench = np.array([0, mass*g, 0, 0, 0, 0]).T # X, Y, Z, Rx, Ry, Rz. Only gravity acting on the Y axis
         torques = self.pay(wrench, joint_angles, jacobian_matrix, 0) #RBT function to calculate torques from payload
@@ -350,6 +362,10 @@ class RPPRRRManipulator(SerialLink):
                 best_sol = x
                 
         print(f"Error for the IK solution {best_sol.q} which has the lowest error of: {lowest_error}")
+
+        if input(f"Plot best IK solution for transform: \n{transform}? \nY/N ").upper() == 'Y':
+            self.plot(best_sol.q, block=True)
+        
         return best_sol, ik_sol_1_error
 
     class RPPRRRManipulatorSympy():
