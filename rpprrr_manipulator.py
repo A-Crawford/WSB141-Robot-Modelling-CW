@@ -36,8 +36,8 @@ class RPPRRRManipulator(SerialLink):
                 [0, 0, self.D2, 0],
                 [np.radians(90), 0, self.D3, 0],
                 [0, 0, self.L1, self.THETA4],
-                [np.radians(90), self.L2, self.L5, self.THETA5],
-                [0, 0, self.L3, self.THETA6],
+                [0, self.L2, self.L5, self.THETA5],
+                [np.radians(90), 0, self.L3, self.THETA6],
                 [0, 0, self.L4, 0]
             ]
         )
@@ -366,18 +366,6 @@ class RPPRRRManipulator(SerialLink):
             self.THETA6 = sy.symbols('THETA6')
             self.D2 = sy.symbols('D2')
             self.D3 = sy.symbols('D3')
-
-            # self.DH_TABLE = sy.Matrix(
-            # [   #alpha, A, D, theta
-            #     [0, 0, self.L0, 0],
-            #     [0, 0, 0, self.THETA1],
-            #     [0, 0, self.D2, 0],
-            #     [np.radians(90), 0, self.D3, 0],
-            #     [0, 0, self.L1, self.THETA4],
-            #     [np.radians(90), self.L2, self.L5, self.THETA5],
-            #     [0, 0, self.L3, self.THETA6],
-            #     [0, 0, self.L4, 0]
-            # ])
             
             self.DH_TABLE = sy.Matrix(
                 [
@@ -386,8 +374,8 @@ class RPPRRRManipulator(SerialLink):
                     [0, 0, self.D2, 0],
                     [np.radians(90), 0, self.D3, 0],
                     [0, 0, self.L1, self.THETA4],
-                    [np.radians(90), self.L2, self.L5, self.THETA5],
-                    [0, 0, self.L3, self.THETA6],
+                    [0, self.L2, self.L5, self.THETA5],
+                    [np.radians(90), 0, self.L3, self.THETA6],
                     [0, 0, self.L4, 0]
                 ]
             )

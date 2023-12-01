@@ -52,11 +52,10 @@ if __name__ == "__main__":
     #Print instance of manipulator to check DH and Qlim Values
     print(manipulator)
     
-    # #STEP 1: Forward Kinematics (FK)
-    # #Calcualte forward kinematic solution using the joint angles specified in 'Step 1: Forward Kinematics (FK)'
-    # # Robotics Toolbox solution
+    #STEP 1: Forward Kinematics (FK)
+    #Calcualte forward kinematic solution using the joint angles specified in 'Step 1: Forward Kinematics (FK)'
+    # Robotics Toolbox solution
     manipulator_fk = manipulator.forward_kinematics(STEP1_FK_JOINT_ANGLES)
-    
     
     # Sympy Solution - Calculated within the initialisation of the class
     sympy_manipulator_fk = np.round(np.array(sympy_manipulator.TB_T_FK).astype(np.float64), 2)
@@ -77,7 +76,8 @@ if __name__ == "__main__":
     # STEP 2: Inverse Kinematics (IK)
     # Now that we have confirmed a very small error in our IK we can use it to solve the transforms specified in 'Step 2: Inverse Kinematics (IK)'
     # Solve each transform specified in the breif. Q limits applied to manipualtor at initialisation
-    manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_1)
+    best_sol, error = manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_1)
+    manipulator.plot(best_sol.q, block=True)
     manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_2)
     manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_3)
     
