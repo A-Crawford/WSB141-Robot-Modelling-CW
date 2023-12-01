@@ -315,9 +315,27 @@ class RPPRRRManipulator(SerialLink):
         return ik_error
         
     def compare_len(self, list1, list2):
+        '''
+        Given two lists, will return True if the first contains more items than the second
+        
+        :param list1: List which second list will be compared to
+        :type list
+        :param list2: list which will be compared to first
+        :type list
+        
+        :return bool: True if list 1 is greater than list 2
+        :type Bool
+        '''
         return len(list1) > len(list2)
     
     def step3_inverse_kinematic_solver(self, transform):
+        '''
+        Given a transformation matrix, will calculate the inverse kinematic solutions. 
+        Will calculate the error in the solution regardless of if a valid soltuion is found or not
+        
+        :param transform: Transformation matrix for the inverse kinematic solution to be found
+        :type ndarray: Numpy ndarray
+        '''
         index = 1
         ik_sol_1 = self.inverse_kinematics(transform, display=True)
         if self.compare_len(ik_sol_1[0], ik_sol_1[1]):

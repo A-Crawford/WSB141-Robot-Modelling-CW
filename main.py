@@ -81,17 +81,6 @@ if __name__ == "__main__":
     manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_2)
     manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_3)
     
-    
-    # ik_sol_2, ik_invalid_sol_2 = manipulator.inverse_kinematics(STEP2_IK_TRANSFORM_2, display=True)
-    # ik_sol_2_error = manipulator.ik_error(STEP2_IK_TRANSFORM_2, ik_sol_2[0])
-    # print('IK Error for Transform 2: ', ik_sol_2_error)
-    
-    # ik_sol_3, ik_invalid_sol_3 = manipulator.inverse_kinematics(STEP2_IK_TRANSFORM_3, display=True)
-    # ik_sol_3_error = manipulator.ik_error(STEP2_IK_TRANSFORM_3, ik_sol_3[0])
-    # print('IK Error for Transform 3: ', ik_sol_3_error)
-    
-    # print(ik_sol_3)
-    
     # #STEP 3: Velocity and Static Force
     # #Calculate Jacobian, Velocities and Static Forces, print the Linear and Angular velocities respetively
     # jacobian, linear_velocities, angular_velocities = manipulator.joint_velocities(joint_angles = STEP3_JOINT_ANGLES, joint_velocities=STEP3_JOINT_VELOCITIES)
