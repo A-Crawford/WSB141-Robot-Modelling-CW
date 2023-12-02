@@ -555,4 +555,68 @@ class RPPRRRManipulator(DHRobot):
             self.T5_MAX_TORQUE = 20
             self.T6_MAX_TORQUE = 10
             
+            # Mass
+            self.MASS = 0.2 #Kg
             
+            #Gravity
+            self.G = 9.8
+        
+            #Force at Last Frame
+            self.F6_6 = np.array([
+                [0],
+                [-self.MASS * self.G],
+                [0]
+            ])
+            
+            # Moment at Last Frame  
+            self.N6_6 = np.array([
+                [0],
+                [0],
+                [0]
+            ])
+            
+        def acc_revolute(self, transform, omega, theta_i_dot, omega_dot, theta_i_2dot, v_dot, PC, mass, I):
+            rotation = transform[:3, :3]
+            position = transform[:3, 3]
+            
+            #Velocity
+            omega_new = rotation.transpose() @ omega + np.matrix([0, 0, theta_i_dot]).reshape(3, 1)
+            
+            #Angular Acceleration
+            omega_dot_new = rotation.transpose() @ (omega_dot + np.transpose(np.cross(omega.transpose(),np.matrix([0,0,theta_i_dot]))) ) + np.matrix([[0],[0],[theta_i_2dot]])
+            v_dot_new = rotation.transpose() @ (np.transpose(np.cross(omega_dot.transpose(),position.transpose())) + np.transpose(np.cross(omega.transpose(),np.cross(omega.transpose(),position.transpose())))+v_dot)
+            
+            # Adjusting for gravity
+            v_centre_dot_new = np.cross(omega_dot_new.transpose(), PC.transpose()) + np.cross(omega_new.transpose(),np.cross(omega_new.transpose(),PC.transpose())) + v_dot_new.transpose()
+            v_centre_dot_new = v_centre_dot_new.transpose()
+            
+            # force action to the centre of mass
+            F_new = mass * v_centre_dot_new
+            
+            # torque action to the centre of mass
+            N_new = I @ omega_dot_new + np.transpose(np.cross(omega_new.transpose(),np.transpose(I @ omega_new)))
+            
+            return omega_new, omega_dot_new, v_dot_new, v_centre_dot_new, F_new, N_new
+        
+        def acc_prismatic(self, transform, omega, d_i_dot, omega_dot, d_i_2dot, v_dot, PC, mass, I):
+            rotation = transform[:3, :3]
+            position = transform[:3, 3]
+            
+            # Velocity
+            omega_new = rotation.transpose() @ omega
+            
+            # Angular Acceleration
+            omega_dot_new = rotation.transpose() @ omega
+            v_dot_new = rotation.transpose() @ ((np.cross(omega_dot, position.transpose()) + np.cross(omega, (np.cross(omega, position.transpose()))) + v_dot)) + np.cross((2 * omega), (np.matrix([0, 0, d_i_dot]) + np.matrix([0], [0], [d_i_2dot]))) 
+        
+            # Adjusting for gravity
+            v_centre_dot_new = np.cross(omega_dot_new.transpose(), PC.transpose()) + np.cross(omega_new.transpose(),np.cross(omega_new.transpose(),PC.transpose())) + v_dot_new.transpose()
+            v_centre_dot_new = v_centre_dot_new.transpose()
+            
+            # Force action at centre of mass
+            F_new = mass * v_centre_dot_new
+
+            # torque action at centre of mass
+            N_new = I @ omega_dot_new + np.transpose(np.cross(omega_new.transpose(), np.transpose(I @ omega_new)))
+            
+            return omega_new, omega_dot_new, v_dot_new, v_centre_dot_new, F_new, N_new
