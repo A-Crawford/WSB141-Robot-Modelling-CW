@@ -458,6 +458,7 @@ class RPPRRRManipulator(DHRobot):
             
             # Calculate transformation from B to T
             self.TB_T = self.TB_1*self.T1_2*self.T2_3*self.T3_4*self.T4_5*self.T5_6*self.T6_T*self.TT_T
+            self.T1_6 = self.T1_2*self.T2_3*self.T3_4*self.T4_5*self.T5_6*self.T6_T
             self.TB_T_FK = self.TB_T.subs({ # Substitude in FK joint values
                 self.L0: 0.10, 
                 self.L1: 0.20,
@@ -537,20 +538,31 @@ class RPPRRRManipulator(DHRobot):
             ])
             
             # Intial Pose at time of emergancy stop
-            self.INIT_POSE = [np.radians(45), 0.5, 0.09, np.radians(90), np.radians(45), np.radian(90)]
+            self.INIT_POSE = [np.radians(45), 0.5, 0.09, np.radians(90), np.radians(45), np.radians(90)]
             
             # Joint Velocities at time of emergancy stop
-            self.E_STOP_JOINT_VELOCITIES = [-35, 0.1 -0.01, -60, 50, 40]
+            self.E_STOP_JOINT_VELOCITIES = [-35, 0.1, -0.01, -60, 50, 40]
+            
+            # 
+            self.DEG = np.pi / 180
+            
+            # Emergency Stop speeds
+            self.theta1_i_dot = self.E_STOP_JOINT_VELOCITIES[0] * self.DEG
+            self.d2_i_dot = self.E_STOP_JOINT_VELOCITIES[1]
+            self.d3_i_dot = self.E_STOP_JOINT_VELOCITIES[2]
+            self.theta4_i_dot = self.E_STOP_JOINT_VELOCITIES[3] * self.DEG
+            self.theta5_i_dot = self.E_STOP_JOINT_VELOCITIES[4] * self.DEG
+            self.theta6_i_dot = self.E_STOP_JOINT_VELOCITIES[5] * self.DEG
             
             # Max Velocities
             self.T1_MAX_VEL = 90
             self.T2_MAX_VEL = 0.90
             self.T3_MAX_VEL = 0.65
-            self.T4_MAX_VEL, self.T5_MAX_VEL, self.T6_MAX_VEL = 60
+            self.T4_MAX_VEL = self.T5_MAX_VEL = self.T6_MAX_VEL = 60
             
             # Max Torques
             self.T1_MAX_TORQUE = 100
-            self.T2_MAX_TORQUE, self.T3_MAX_TORQUE = 80
+            self.T2_MAX_TORQUE = self.T3_MAX_TORQUE = 80
             self.T4_MAX_TORQUE = 40
             self.T5_MAX_TORQUE = 20
             self.T6_MAX_TORQUE = 10
@@ -589,6 +601,7 @@ class RPPRRRManipulator(DHRobot):
             
             #Init Linear acceleration at base, given gravity
             v_dot_0_0 = np.matrix([[0], [self.G], [0]])
+            
             
         def acc_revolute(self, transform, omega, theta_i_dot, omega_dot, theta_i_2dot, v_dot, PC, mass, I):
             rotation = transform[:3, :3]
