@@ -575,6 +575,21 @@ class RPPRRRManipulator(DHRobot):
                 [0]
             ])
             
+            # Acceleration
+            self.theta1_2dot = -self.T1_MAX_TORQUE / self.I_C1_1[2, 2]
+            self.d2_2dot = -self.T2_MAX_TORQUE / self.I_C2_2[2, 2]
+            self.d3_2dot = -self.T3_MAX_TORQUE / self.I_C3_3[2, 2]
+            self.theta4_2dot = -self.T4_MAX_TORQUE / self.I_C4_4[2, 2]
+            self.theta5_2dot = -self.T5_MAX_TORQUE / self.I_C5_5[2, 2]
+            self.theta6_2dot = -self.T6_MAX_TORQUE / self.I_C6_6[2, 2]
+            
+            # Init angular accerlation at base
+            self.omega_0_0 = np.matrix([[0], [0], [0]])
+            self.omega_dot_0_0 = np.matrix([[0], [0], [0]])
+            
+            #Init Linear acceleration at base, given gravity
+            v_dot_0_0 = np.matrix([[0], [self.G], [0]])
+            
         def acc_revolute(self, transform, omega, theta_i_dot, omega_dot, theta_i_2dot, v_dot, PC, mass, I):
             rotation = transform[:3, :3]
             position = transform[:3, 3]
@@ -620,3 +635,15 @@ class RPPRRRManipulator(DHRobot):
             N_new = I @ omega_dot_new + np.transpose(np.cross(omega_new.transpose(), np.transpose(I @ omega_new)))
             
             return omega_new, omega_dot_new, v_dot_new, v_centre_dot_new, F_new, N_new
+        
+        def forces(self, transform, N, F, n, f, PC):
+            rotation = transform[:3, :3]
+            position = transform[:3, 3]
+            
+            link_torque = N + rotation @ n + np.transpose(np.cross(PC.transpose(),F.transpose()) + np.cross(position.transpose(),np.transpose(rotation @ f)))
+            
+            link_force = rotation @ f + F
+            
+            tau = n.transpose() * np.matrix([0], [0], [1])
+            
+            return link_force, link_torque, tau
