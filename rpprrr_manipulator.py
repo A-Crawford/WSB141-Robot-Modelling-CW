@@ -99,7 +99,7 @@ class RPPRRRManipulator(DHRobot):
             RevoluteMDH( #Fake joint to mimic tool frame
                 alpha=self.DH_TABLE[7][0], 
                 a=self.DH_TABLE[7][1], 
-                q=self.DH_TABLE[7][2], 
+                d=self.DH_TABLE[7][2], 
                 offset=self.DH_TABLE[7][3], 
                 qlim=np.array([0, 0])
                 ) 
