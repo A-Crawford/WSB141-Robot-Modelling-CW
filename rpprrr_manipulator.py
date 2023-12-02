@@ -600,7 +600,23 @@ class RPPRRRManipulator(DHRobot):
             self.omega_dot_0_0 = np.matrix([[0], [0], [0]])
             
             #Init Linear acceleration at base, given gravity
-            v_dot_0_0 = np.matrix([[0], [self.G], [0]])
+            self.v_dot_0_0 = np.matrix([[0], [self.G], [0]])
+            
+            omega1_1, omega_dot1_1, v_dot1_1, v_centre_dot1_1, F1_1, N1_1 = self.acc_revolute(self.T1_2, self.omega_0_0, self.theta1_i_dot, self.omega_dot_0_0, self.theta1_2dot, self.v_dot_0_0, self.PC1_1, self.M1, self.I_C1_1)
+            print('\n Angular velocity in Joint Frame 1', omega1_1)
+            print('\n Angular Acceleration in Joint Frame 1',omega_dot1_1)
+            print('\n Linear Velocity in Joint Frame 1',v_dot1_1)
+            print ('\n Linear Acceleration at Center of Mass in Frame 1', v_centre_dot1_1)
+            print('\n Forces at center of Mass in Frame 1',F1_1)
+            print('\n Moment at the center of Mass in Frame 1',N1_1)
+            
+            omega2_2, omega_dot2_2, v_dot2_2, v_centre_dot2_2, F2_2, N2_2 = self.acc_prismatic(self.T2_3, omega1_1, self.d2_i_dot, omega_dot1_1, self.d2_2dot, v_dot1_1, self.PC2_2, self.M2, self.I_C2_2)
+            print('\n Angular velocity in Joint Frame 1', omega2_2)
+            print('\n Angular Acceleration in Joint Frame 1',omega_dot2_2)
+            print('\n Linear Velocity in Joint Frame 1',v_dot2_2)
+            print ('\n Linear Acceleration at Center of Mass in Frame 1', v_centre_dot2_2)
+            print('\n Forces at center of Mass in Frame 1',F2_2)
+            print('\n Moment at the center of Mass in Frame 1',N2_2)
             
             
         def acc_revolute(self, transform, omega, theta_i_dot, omega_dot, theta_i_2dot, v_dot, PC, mass, I):
@@ -635,7 +651,7 @@ class RPPRRRManipulator(DHRobot):
             
             # Angular Acceleration
             omega_dot_new = rotation.transpose() @ omega
-            v_dot_new = rotation.transpose() @ ((np.cross(omega_dot, position.transpose()) + np.cross(omega, (np.cross(omega, position.transpose()))) + v_dot)) + np.cross((2 * omega), (np.matrix([0, 0, d_i_dot]) + np.matrix([0], [0], [d_i_2dot]))) 
+            v_dot_new = rotation.T @ (np.transpose(np.cross(omega_dot.T, position.T))) + np.transpose(np.cross(omega.T, (np.cross(omega.T, position.T))) + v_dot.T) + np.transpose((np.cross((2 * omega.T), (np.matrix([0, 0, d_i_dot]) + np.matrix([0, 0, d_i_2dot])))))
         
             # Adjusting for gravity
             v_centre_dot_new = np.cross(omega_dot_new.transpose(), PC.transpose()) + np.cross(omega_new.transpose(),np.cross(omega_new.transpose(),PC.transpose())) + v_dot_new.transpose()

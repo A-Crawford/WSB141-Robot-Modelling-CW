@@ -52,6 +52,7 @@ if __name__ == "__main__":
     #Print instance of manipulator to check DH and Qlim Values
     print(manipulator)
     
+    manipulator.plot([0, 0, 0.5, 0, 0, 0, 0, 0], block=True)
     
     #STEP 1: Forward Kinematics (FK)
     #Calcualte forward kinematic solution using the joint angles specified in 'Step 1: Forward Kinematics (FK)'
