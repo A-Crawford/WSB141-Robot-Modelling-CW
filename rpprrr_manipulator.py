@@ -151,7 +151,7 @@ class RPPRRRManipulator(DHRobot):
         :type tuple<list<ik_solution>>: IKSolution
         ''' 
         
-        print("Calculating Inverse Kinematics for the folllowing transformation matrix:\n", transform)
+        print("\nCalculating Inverse Kinematics for the folllowing transformation matrix:\n", transform)
         
         self.transform_type_check(transform)
         self.solutions = []
@@ -170,21 +170,63 @@ class RPPRRRManipulator(DHRobot):
                 
         if len(valid_solutions) > len(invalid_solutions):          
             if len(valid_solutions) > 99:
-                print("Over 99 Kinematic Solutions found.")
+                print("\nOver 99 Kinematic Solutions found.")
             else:
                 print(f"{len(valid_solutions)} Inverse Kinematic Solutions found.")
                     
-            ans = input("Do you wish to display all solutions? Y/N ").upper()
+            ans = input("\nDo you wish to display all solutions? Y/N ").upper()
             if ans == 'Y':
                 for x in valid_solutions:
                     print(x)
         else:
-            print("Inverse Kinematic solution not possible.")
-            ans = input("Do you wish to display closest possible solution? Y/N ").upper()
-            if ans == 'Y':
-                print(invalid_solutions[0])
+            print("\nInverse Kinematic solution not possible.")
+            print(f'\nCloest solution: {invalid_solutions[0]}')
                     
         return valid_solutions, invalid_solutions
+    
+    def step3_inverse_kinematic_solver(self, transform):
+        '''
+        Given a transformation matrix, will calculate the inverse kinematic solutions. 
+        Will calculate the error in the solution regardless of if a valid soltuion is found or not
+        
+        :param transform: Transformation matrix for the inverse kinematic solution to be found
+        :type ndarray: Numpy ndarray
+        '''
+        index = 1
+        ik_sol_1 = self.inverse_kinematics(transform, display=True)
+        if self.compare_len(ik_sol_1[0], ik_sol_1[1]):
+            index = 0
+        
+        lowest_error = 100
+        best_sol = IKSolution
+        for x in ik_sol_1[index]:
+            ik_sol_1_error = self.ik_error(transform, x)
+            if ik_sol_1_error < lowest_error:
+                lowest_error = ik_sol_1_error
+                best_sol = x
+                
+        print(f"\nBest IK solution {best_sol.q} with the lowest error of: {lowest_error}")
+
+        if input(f"\nDisplay plot for best IK solution for transform: \n{transform}? \nY/N ").upper() == 'Y':
+            self.plot(best_sol.q, block=True)
+        
+        return best_sol, ik_sol_1_error
+    
+    def ik_error(self, transform: SE3, ik_solution: IKSolution):
+        '''
+        Given a transform and IK Solution, will return the error
+        
+        :param transform: The transform the IK solution is based on
+        :type transform: SE3 and numpy.ndarray
+        
+        :return ik_error: numerical error
+        :type ik_error: float
+        '''
+        
+        self.transform_type_check(transform)
+        self.joint_type_check(ik_solution, IKSolution)
+        ik_error = np.linalg.norm(transform - self.fkine(ik_solution.q))
+        return ik_error
             
     def joint_velocities(self, joint_angles: list, joint_velocities: list):
         '''
@@ -310,21 +352,6 @@ class RPPRRRManipulator(DHRobot):
             print("An error occured: ", e)
         return input_list
         
-    def ik_error(self, transform: SE3, ik_solution: IKSolution):
-        '''
-        Given a transform and IK Solution, will return the error
-        
-        :param transform: The transform the IK solution is based on
-        :type transform: SE3 and numpy.ndarray
-        
-        :return ik_error: numerical error
-        :type ik_error: float
-        '''
-        
-        self.transform_type_check(transform)
-        self.joint_type_check(ik_solution, IKSolution)
-        ik_error = np.linalg.norm(transform - self.fkine(ik_solution.q))
-        return ik_error
         
     def compare_len(self, list1, list2):
         '''
@@ -340,36 +367,11 @@ class RPPRRRManipulator(DHRobot):
         '''
         return len(list1) > len(list2)
     
-    def step3_inverse_kinematic_solver(self, transform):
-        '''
-        Given a transformation matrix, will calculate the inverse kinematic solutions. 
-        Will calculate the error in the solution regardless of if a valid soltuion is found or not
-        
-        :param transform: Transformation matrix for the inverse kinematic solution to be found
-        :type ndarray: Numpy ndarray
-        '''
-        index = 1
-        ik_sol_1 = self.inverse_kinematics(transform, display=True)
-        if self.compare_len(ik_sol_1[0], ik_sol_1[1]):
-            index = 0
-        
-        lowest_error = 100
-        best_sol = IKSolution
-        for x in ik_sol_1[index]:
-            ik_sol_1_error = self.ik_error(transform, x)
-            if ik_sol_1_error < lowest_error:
-                lowest_error = ik_sol_1_error
-                best_sol = x
-                
-        print(f"Error for the IK solution {best_sol.q} which has the lowest error of: {lowest_error}")
-
-        if input(f"Plot best IK solution for transform: \n{transform}? \nY/N ").upper() == 'Y':
-            self.plot(best_sol.q, block=True)
-        
-        return best_sol, ik_sol_1_error
+    
 
     class RPPRRRManipulatorSympy():
         def __init__(self):
+            # Delcare Symbols for DH table abd transformation
             self.L0 = sy.symbols('L0')
             self.L1 = sy.symbols('L1')
             self.L2 = sy.symbols('L2')
@@ -383,6 +385,7 @@ class RPPRRRManipulator(DHRobot):
             self.D2 = sy.symbols('D2')
             self.D3 = sy.symbols('D3')
             
+            # Declare DH Table
             self.DH_TABLE = sy.Matrix(
                 [
                     [0, 0, self.L0, 0],
@@ -396,6 +399,7 @@ class RPPRRRManipulator(DHRobot):
                 ]
             )
             
+            # Declare Transformation for each link
             self.TB_1 = sy.Matrix([
                 [sy.cos(self.DH_TABLE[0, 3]), -sy.sin(self.DH_TABLE[0, 3]), 0, self.DH_TABLE[0, 1]],
                 [(sy.sin(self.DH_TABLE[0, 3])*sy.cos(self.DH_TABLE[0, 0])), (sy.cos(self.DH_TABLE[0, 3])*sy.cos(self.DH_TABLE[0, 0])), -sy.sin(self.DH_TABLE[0, 0]), (-sy.sin(self.DH_TABLE[0, 0])*self.DH_TABLE[0, 2])],
@@ -452,10 +456,10 @@ class RPPRRRManipulator(DHRobot):
                 [0, 0, 0, 1]
             ])
             
-            
+            # Calculate transformation from B to T
             self.TB_T = self.TB_1*self.T1_2*self.T2_3*self.T3_4*self.T4_5*self.T5_6*self.T6_T*self.TT_T
-            self.TB_T_FK = self.TB_T.subs({
-                self.L0: 0.10,
+            self.TB_T_FK = self.TB_T.subs({ # Substitude in FK joint values
+                self.L0: 0.10, 
                 self.L1: 0.20,
                 self.L2: 0.30,
                 self.L3: 0.30,
@@ -469,5 +473,86 @@ class RPPRRRManipulator(DHRobot):
                 self.THETA6: 0
             })
             
+            # Declare Centre of mass values
+            self.PCB_B = np.array([0, 0, 0.05])
+            self.PC1_1 = np.array([0, 0, 0.3])
+            self.PC2_2 = np.array([0.0526, -0.0001526, 0.4998])
+            self.PC3_3 = np.array([0.0526, -0.0001526, 0.4998])
+            self.PC4_4 = np.array([0.2203, 0.1271, 0.4761])
+            self.PC5_5 = np.array([0.2208, 0.2812, 0.2578])
+            self.PC6_6 = np.array([0.2207, 0.2671, 0.0583])
+            
+            #  Link Masses
+            self.LINK_MASSES = np.array([6.16, 9.81, 4.767, 4.676, 3.7632, 1.960, 0.147])
+            self.M0 = self.LINK_MASSES[0] #Base
+            self.M1 = self.LINK_MASSES[1] #Link 1
+            self.M2 = self.LINK_MASSES[2] #Link 2
+            self.M3 = self.LINK_MASSES[3] #Link 3
+            self.M4 = self.LINK_MASSES[4] #Link 4
+            self.M5 = self.LINK_MASSES[5] #Link 5
+            self.M6 = self.LINK_MASSES[6] #Link 6
+            self.M7 = 0 #Link 7
+            
+            # Inertia Tensors
+            self.I_CB_B = np.array([
+                [0.0244, 0, 0],
+                [0, 0.0244, 0],
+                [0, 0, 0.0077]
+            ])
+            
+            self.I_C1_1 = np.array([
+                [1.088, 0, 0],
+                [0, 1.0882, 0],
+                [0, 0, 0.004]
+            ])
+            
+            self.I_C2_2 = np.array([
+                [1.1932, 0.0009, -0.1254],
+                [0.0009, 1.2268, 0.0003],
+                [-0.1254, 0.0003, 0.0357]
+            ])
+            
+            self.I_C3_3 = np.array([
+                [1.1932, 0.0009, -0.1254],
+                [0.0009, 1.2268, 0.0003],
+                [-0.1254, 0.0003, 0.0357]
+            ])
+            
+            self.I_C4_4 = np.array([
+                [0.9429, -0.1055, -0.3949],
+                [-0.1055, 1.0380, -0.2229],
+                [-0.3949, -0.2229, 0.2714]
+            ])
+            
+            self.I_C5_5 = np.array([
+                [0.3116, -0.1217, -0.1116],
+                [-0.1217, 0.2520, -0.1440],
+                [-0.1116, -0.1440, 0.2509]
+            ])
+            
+            self.I_C6_6 = np.array([
+                [0.0110, -0.0087, -0.0019],
+                [-0.0087, 0.0077, -0.0023],
+                [-0.0019 ,-0.0023, 0.00177]
+            ])
+            
+            # Intial Pose at time of emergancy stop
+            self.INIT_POSE = [np.radians(45), 0.5, 0.09, np.radians(90), np.radians(45), np.radian(90)]
+            
+            # Joint Velocities at time of emergancy stop
+            self.E_STOP_JOINT_VELOCITIES = [-35, 0.1 -0.01, -60, 50, 40]
+            
+            # Max Velocities
+            self.T1_MAX_VEL = 90
+            self.T2_MAX_VEL = 0.90
+            self.T3_MAX_VEL = 0.65
+            self.T4_MAX_VEL, self.T5_MAX_VEL, self.T6_MAX_VEL = 60
+            
+            # Max Torques
+            self.T1_MAX_TORQUE = 100
+            self.T2_MAX_TORQUE, self.T3_MAX_TORQUE = 80
+            self.T4_MAX_TORQUE = 40
+            self.T5_MAX_TORQUE = 20
+            self.T6_MAX_TORQUE = 10
             
             
