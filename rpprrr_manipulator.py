@@ -480,6 +480,7 @@ class RPPRRRManipulator(DHRobot):
                 self.THETA6: 0
             })
             
+            # Delcaring all fo the constants for use in dynamics calculations
             # Declare Centre of mass values
             self.PCB_B = np.array([0, 0, 0.05])
             self.PC1_1 = np.array([0, 0, 0.3])
@@ -549,7 +550,7 @@ class RPPRRRManipulator(DHRobot):
             # Joint Velocities at time of emergancy stop
             self.E_STOP_JOINT_VELOCITIES = [-35, 0.1, -0.01, -60, 50, 40]
             
-            # 
+            # Constant for converting to radians
             self.DEG = np.pi / 180
             
             # Emergency Stop speeds
@@ -610,97 +611,18 @@ class RPPRRRManipulator(DHRobot):
             #Init Linear acceleration at base, given gravity
             self.v_dot_0_0 = np.matrix([[0], [self.G], [0]])
             
+            # Run method to compute angular/linear velocity/acceleration 
+            # Run method to compute linke force/torque and Joint Torque
+            self.calc_vel_acc()
+            self.calc_joint_vals(F=self.F_values, N=self.N_values)
             
-            #Transform from current joint
-            #omega from previous joint
-            #theta_dot from current joint
-            #omega_dot from previous joint
-            #theta_2dot from current joint
-            #v_dot from previous joint
-            #PC from current joint
-            #Mass from current joint
-            #Inertia from current joint
-            
-            #Base
-            omega_0_0, omega_dot_0_0, v_dot_0_0, v_centre_dot_0_0, F_0_0, N_0_0 = self.acc_revolute(transform=self.TB_1, omega=self.omega_0_0, theta_i_dot=self.thetaB_i_dot, omega_dot=self.omega_dot_0_0, theta_i_2dot=self.thetaB_2dot, v_dot=self.v_dot_0_0, PC=self.PCB_B, mass=self.M0, I=self.I_CB_B) 
-            
-            #Joint 1 - Revolute
-            omega_1_1, omega_dot_1_1, v_dot_1_1, v_centre_dot_1_1, F_1_1, N_1_1 = self.acc_revolute(transform=self.T1_2, omega=self.omega_0_0, theta_i_dot=self.theta1_i_dot, omega_dot=self.omega_dot_0_0, theta_i_2dot=self.theta1_2dot, v_dot=self.v_dot_0_0, PC=self.PC1_1, mass=self.M1, I=self.I_C1_1)
-            
-            #Joint 2 - Prismatic
-            omega_2_2, omega_dot_2_2, v_dot_2_2, v_centre_dot_2_2, F_2_2, N_2_2 = self.acc_prismatic(transform=self.T2_3, omega=omega_1_1, d_i_dot=self.d2_i_dot, omega_dot=omega_dot_1_1, d_i_2dot=self.d2_2dot, v_dot=v_dot_1_1, PC=self.PC2_2, mass=self.M2, I=self.I_C2_2)
-            
-            #Joint 3 - Prismatic
-            omega_3_3, omega_dot_3_3, v_dot_3_3, v_centre_dot_3_3, F_3_3, N_3_3 = self.acc_prismatic(transform=self.T3_4, omega=omega_2_2, d_i_dot=self.d3_i_dot, omega_dot=omega_dot_2_2, d_i_2dot=self.d3_2dot, v_dot=v_dot_2_2, PC=self.PC3_3, mass=self.M3, I=self.I_C3_3)
-            
-            #Joint 4 - Revolute
-            omega_4_4, omega_dot_4_4, v_dot_4_4, v_centre_dot_4_4, F_4_4, N_4_4 = self.acc_revolute(transform=self.T4_5, omega=omega_3_3, theta_i_dot=self.theta4_i_dot, omega_dot=omega_dot_3_3, theta_i_2dot=self.theta4_2dot, v_dot=v_dot_3_3, PC=self.PC4_4, mass=self.M4, I=self.I_C4_4)
-            
-            #Joint 5 - Revolute
-            omega_5_5, omega_dot_5_5, v_dot_5_5, v_centre_dot_5_5, F_5_5, N_5_5 = self.acc_revolute(transform=self.T5_6, omega=omega_4_4, theta_i_dot=self.theta5_i_dot, omega_dot=omega_dot_4_4, theta_i_2dot=self.theta5_2dot, v_dot=v_dot_4_4, PC=self.PC5_5, mass=self.M5, I=self.I_C5_5)
-            
-            #Joint 6 - Revolute
-            omega_6_6, omega_dot_6_6, v_dot_6_6, v_centre_dot_6_6, F_6_6, N_6_6 = self.acc_revolute(transform=self.T6_T, omega=omega_5_5, theta_i_dot=self.theta6_i_dot, omega_dot=omega_dot_5_5, theta_i_2dot=self.theta6_2dot, v_dot=v_dot_5_5, PC=self.PC6_6, mass=self.M6, I=self.I_C6_6)
-            
-            # Create lists of each values so that they are more easily worked with
-            self.omega_values = [omega_0_0, omega_1_1, omega_2_2, omega_3_3, omega_4_4, omega_5_5, omega_6_6]
-            self.omega_dot_values = [omega_dot_0_0, omega_dot_1_1, omega_dot_2_2, omega_dot_3_3, omega_dot_4_4, omega_dot_5_5, omega_dot_6_6]
-            self.v_dot_values = [v_dot_0_0, v_dot_1_1, v_dot_2_2, v_dot_3_3, v_dot_4_4, v_dot_5_5, v_dot_6_6]
-            self.v_centre_dot_values = [v_centre_dot_0_0, v_centre_dot_1_1, v_centre_dot_2_2, v_centre_dot_3_3, v_centre_dot_4_4, v_centre_dot_5_5, v_centre_dot_6_6]
-            self.F_values = [F_0_0, F_1_1, F_2_2, F_3_3, F_4_4, F_5_5, F_6_6]
-            self.N_values = [N_0_0, N_1_1, N_2_2, N_3_3, N_4_4, N_5_5, N_6_6]
-            
-            self.dynamics_data = {
-                "Omega": self.omega_values,
-                "Omega_Dot": self.omega_dot_values,
-                "V_Dot": self.v_dot_values,
-                "V_Centre_Dot": self.v_centre_dot_values,
-                "Force": self.F_values,
-                "Torque": self.N_values
-            }
-            link_labels = ['Base', 'Link 1', 'Link 2', 'Link 3', 'Link 4', 'Link 5', 'Link 6']
-            self.dynamics_table = pd.DataFrame(self.dynamics_data, index=link_labels)
-            
-            # Iterate from end effector to base
-            self.NT_T = np.array([[0], [0], [0]]) # No intial moment
-            self.FT_T = np.array([[0], [-self.MASS*self.G], [0]]) # Froces of gravity
-            
-            
-            # Transform from current joint
-            # N from current joint
-            # F from current joint
-            # n from previous joint
-            # f from previous joint
-            # PC from previous joint
-            
-            # Joint 6
-            F6_6_total, N_6_6_total, Torque_Joint6 = self.dynamics_forces(transform=self.T6_T, N=N_6_6, F=F_6_6, n=self.NT_T, f=self.FT_T, PC=self.PC6_6)
-            
-            # Joint 5
-            F5_5_total, N_5_5_total, Torque_Joint5 = self.dynamics_forces(transform=self.T5_6, N=N_5_5, F=F_5_5, n=N_6_6, f=F_6_6, PC=self.PC5_5)
-            
-            # Joint 4
-            F4_4_total, N_4_4_total, Torque_Joint4 = self.dynamics_forces(transform=self.T4_5, N=N_4_4, F=F_4_4, n=N_5_5, f=F_5_5, PC=self.PC4_4)
-            
-            # Joint 3
-            F3_3_total, N_3_3_total, Torque_Joint3 = self.dynamics_forces(transform=self.T3_4, N=N_3_3, F=F_3_3, n=N_4_4, f=F_4_4, PC=self.PC3_3)
-            
-            # Joint 2
-            F2_2_total, N_2_2_total, Torque_Joint2 = self.dynamics_forces(transform=self.T2_3, N=N_2_2, F=F_2_2, n=N_3_3, f=F_3_3, PC=self.PC2_2)
-            
-            # Joint 1
-            F1_1_total, N_1_1_total, Torque_Joint1 = self.dynamics_forces(transform=self.T1_2, N=N_1_1, F=F_1_1, n=N_2_2, f=F_2_2, PC=self.PC1_1)
-            
-            # Joint 0 - Base
-            FB_B_total, N_B_B_total, Torque_JointB = self.dynamics_forces(transform=self.TB_1, N=N_0_0, F=F_0_0, n=N_1_1, f=F_1_1, PC=self.PCB_B)
-            
-            
-            self.F_totals = [F6_6_total, F5_5_total, F4_4_total, F3_3_total, F2_2_total, F1_1_total, FB_B_total]
-            self.N_total = [N_6_6_total, N_5_5_total, N_4_4_total, N_3_3_total, N_2_2_total, N_1_1_total, N_B_B_total]
-            self.joint_torque_totals = [Torque_Joint6, Torque_Joint5, Torque_Joint4, Torque_Joint3, Torque_Joint2, Torque_Joint1, Torque_JointB]
-            
-            for x in range(len(self.F_totals)-1, 0, -1):
-                print(f"\nTotal Force on Joint {x}: ", self.F_totals[x])
+            print('Torque Joint 6:', self.joint_torque_totals[0])
+            print('Torque Joint 5:', self.joint_torque_totals[1])
+            print('Torque Joint 4:', self.joint_torque_totals[2])
+            print('Torque Joint 3:', self.joint_torque_totals[3])
+            print('Torque Joint 2:', self.joint_torque_totals[4])
+            print('Torque Joint 1:', self.joint_torque_totals[5])
+            print('Torque Joint B:', self.joint_torque_totals[6])
             
             
         def acc_revolute(self, transform, omega, theta_i_dot, omega_dot, theta_i_2dot, v_dot, PC, mass, I):
@@ -829,3 +751,94 @@ class RPPRRRManipulator(DHRobot):
             tau = n.transpose() * np.matrix([[0], [0], [1]])
             
             return link_force, link_torque, tau
+        
+        def calc_vel_acc(self):
+            #Transform from current joint
+            #omega from previous joint
+            #theta_dot from current joint
+            #omega_dot from previous joint
+            #theta_2dot from current joint
+            #v_dot from previous joint
+            #PC from current joint
+            #Mass from current joint
+            #Inertia from current joint
+            
+            #Base
+            omega_0_0, omega_dot_0_0, v_dot_0_0, v_centre_dot_0_0, F_0_0, N_0_0 = self.acc_revolute(transform=self.TB_1, omega=self.omega_0_0, theta_i_dot=self.thetaB_i_dot, omega_dot=self.omega_dot_0_0, theta_i_2dot=self.thetaB_2dot, v_dot=self.v_dot_0_0, PC=self.PCB_B, mass=self.M0, I=self.I_CB_B) 
+            
+            #Joint 1 - Revolute
+            omega_1_1, omega_dot_1_1, v_dot_1_1, v_centre_dot_1_1, F_1_1, N_1_1 = self.acc_revolute(transform=self.T1_2, omega=self.omega_0_0, theta_i_dot=self.theta1_i_dot, omega_dot=self.omega_dot_0_0, theta_i_2dot=self.theta1_2dot, v_dot=self.v_dot_0_0, PC=self.PC1_1, mass=self.M1, I=self.I_C1_1)
+            
+            #Joint 2 - Prismatic
+            omega_2_2, omega_dot_2_2, v_dot_2_2, v_centre_dot_2_2, F_2_2, N_2_2 = self.acc_prismatic(transform=self.T2_3, omega=omega_1_1, d_i_dot=self.d2_i_dot, omega_dot=omega_dot_1_1, d_i_2dot=self.d2_2dot, v_dot=v_dot_1_1, PC=self.PC2_2, mass=self.M2, I=self.I_C2_2)
+            
+            #Joint 3 - Prismatic
+            omega_3_3, omega_dot_3_3, v_dot_3_3, v_centre_dot_3_3, F_3_3, N_3_3 = self.acc_prismatic(transform=self.T3_4, omega=omega_2_2, d_i_dot=self.d3_i_dot, omega_dot=omega_dot_2_2, d_i_2dot=self.d3_2dot, v_dot=v_dot_2_2, PC=self.PC3_3, mass=self.M3, I=self.I_C3_3)
+            
+            #Joint 4 - Revolute
+            omega_4_4, omega_dot_4_4, v_dot_4_4, v_centre_dot_4_4, F_4_4, N_4_4 = self.acc_revolute(transform=self.T4_5, omega=omega_3_3, theta_i_dot=self.theta4_i_dot, omega_dot=omega_dot_3_3, theta_i_2dot=self.theta4_2dot, v_dot=v_dot_3_3, PC=self.PC4_4, mass=self.M4, I=self.I_C4_4)
+            
+            #Joint 5 - Revolute
+            omega_5_5, omega_dot_5_5, v_dot_5_5, v_centre_dot_5_5, F_5_5, N_5_5 = self.acc_revolute(transform=self.T5_6, omega=omega_4_4, theta_i_dot=self.theta5_i_dot, omega_dot=omega_dot_4_4, theta_i_2dot=self.theta5_2dot, v_dot=v_dot_4_4, PC=self.PC5_5, mass=self.M5, I=self.I_C5_5)
+            
+            #Joint 6 - Revolute
+            omega_6_6, omega_dot_6_6, v_dot_6_6, v_centre_dot_6_6, F_6_6, N_6_6 = self.acc_revolute(transform=self.T6_T, omega=omega_5_5, theta_i_dot=self.theta6_i_dot, omega_dot=omega_dot_5_5, theta_i_2dot=self.theta6_2dot, v_dot=v_dot_5_5, PC=self.PC6_6, mass=self.M6, I=self.I_C6_6)
+            
+            # Create lists of each values so that they are more easily worked with
+            self.omega_values = [omega_0_0, omega_1_1, omega_2_2, omega_3_3, omega_4_4, omega_5_5, omega_6_6]
+            self.omega_dot_values = [omega_dot_0_0, omega_dot_1_1, omega_dot_2_2, omega_dot_3_3, omega_dot_4_4, omega_dot_5_5, omega_dot_6_6]
+            self.v_dot_values = [v_dot_0_0, v_dot_1_1, v_dot_2_2, v_dot_3_3, v_dot_4_4, v_dot_5_5, v_dot_6_6]
+            self.v_centre_dot_values = [v_centre_dot_0_0, v_centre_dot_1_1, v_centre_dot_2_2, v_centre_dot_3_3, v_centre_dot_4_4, v_centre_dot_5_5, v_centre_dot_6_6]
+            self.F_values = [F_0_0, F_1_1, F_2_2, F_3_3, F_4_4, F_5_5, F_6_6]
+            self.N_values = [N_0_0, N_1_1, N_2_2, N_3_3, N_4_4, N_5_5, N_6_6]
+            
+            self.dynamics_data = {
+                "Omega": self.omega_values,
+                "Omega_Dot": self.omega_dot_values,
+                "V_Dot": self.v_dot_values,
+                "V_Centre_Dot": self.v_centre_dot_values,
+                "Force": self.F_values,
+                "Torque": self.N_values
+            }
+            link_labels = ['Base', 'Link 1', 'Link 2', 'Link 3', 'Link 4', 'Link 5', 'Link 6']
+            self.dynamics_table = pd.DataFrame(self.dynamics_data, index=link_labels)
+            
+        def calc_joint_vals(self, F, N):
+            
+            # Iterate from end effector to base
+            self.NT_T = np.array([[0], [0], [0]]) # No intial moment
+            self.FT_T = np.array([[0], [-self.MASS*self.G], [0]]) # Froces of gravity
+            
+            # Transform from current joint
+            # N from current joint
+            # F from current joint
+            # n from previous joint
+            # f from previous joint
+            # PC from previous joint
+            
+            # Joint 6
+            F6_6_total, N_6_6_total, Torque_Joint6 = self.dynamics_forces(transform=self.T6_T, N=N[6], F=F[6], n=self.NT_T, f=self.FT_T, PC=self.PC6_6)
+            
+            # Joint 5
+            F5_5_total, N_5_5_total, Torque_Joint5 = self.dynamics_forces(transform=self.T5_6, N=N[5], F=F[5], n=N[6], f=F[6], PC=self.PC5_5)
+            
+            # Joint 4
+            F4_4_total, N_4_4_total, Torque_Joint4 = self.dynamics_forces(transform=self.T4_5, N=N[4], F=F[4], n=N[5], f=F[5], PC=self.PC4_4)
+            
+            # Joint 3
+            F3_3_total, N_3_3_total, Torque_Joint3 = self.dynamics_forces(transform=self.T3_4, N=N[3], F=F[3], n=N[4], f=F[4], PC=self.PC3_3)
+            
+            # Joint 2
+            F2_2_total, N_2_2_total, Torque_Joint2 = self.dynamics_forces(transform=self.T2_3, N=N[2], F=F[2], n=N[3], f=F[3], PC=self.PC2_2)
+            
+            # Joint 1
+            F1_1_total, N_1_1_total, Torque_Joint1 = self.dynamics_forces(transform=self.T1_2, N=N[1], F=F[1], n=N[2], f=F[2], PC=self.PC1_1)
+            
+            # Joint 0 - Base
+            FB_B_total, N_B_B_total, Torque_JointB = self.dynamics_forces(transform=self.TB_1, N=N[0], F=F[0], n=N[1], f=F[1], PC=self.PCB_B)
+            
+            
+            self.F_totals = [F6_6_total, F5_5_total, F4_4_total, F3_3_total, F2_2_total, F1_1_total, FB_B_total]
+            self.N_total = [N_6_6_total, N_5_5_total, N_4_4_total, N_3_3_total, N_2_2_total, N_1_1_total, N_B_B_total]
+            self.joint_torque_totals = [Torque_Joint6, Torque_Joint5, Torque_Joint4, Torque_Joint3, Torque_Joint2, Torque_Joint1, Torque_JointB]
+            
