@@ -13,6 +13,8 @@ import pandas as pd
 class RPPRRRManipulator(DHRobot):
     """
     Class to model and interact with RPPRRR Manipulator as defined in 23WSB141 - Introduction To Robotics Coursework
+    
+    Inherits from the DHRobot class of the Robotics Toolbox for Python library.
     """
 
     def __init__(self):
@@ -30,6 +32,7 @@ class RPPRRRManipulator(DHRobot):
         self.D2 = 0.5
         self.D3 = 0
 
+        # Declare DH table - For use in RBT solution
         self.DH_TABLE = np.array(
             [
                 [0, 0, self.L0, 0],
@@ -43,6 +46,7 @@ class RPPRRRManipulator(DHRobot):
             ]
         )
 
+        # Define list of RevoluteMDH or PrismaticMDH class instances to create definition of manipulator
         links = [
             RevoluteMDH(# Fake joint to mimic base frame 
                 alpha=self.DH_TABLE[0][0], 
@@ -353,7 +357,6 @@ class RPPRRRManipulator(DHRobot):
             print("An error occured: ", e)
         return input_list
         
-        
     def compare_len(self, list1, list2):
         '''
         Given two lists, will return True if the first contains more items than the second
@@ -368,11 +371,13 @@ class RPPRRRManipulator(DHRobot):
         '''
         return len(list1) > len(list2)
     
-    
 
     class RPPRRRManipulatorSympy():
+        '''
+        Sub-Class of RPPRRRManipulator Class which utilises Sympy library to expand capabilities of parent class
+        '''
         def __init__(self):
-            # Delcare Symbols for DH table abd transformation
+            # Delcare Symbols for DH table abd transformation, reassignment of previous variables now that they have been used in the initialisation of the RBT model
             self.L0 = sy.symbols('L0')
             self.L1 = sy.symbols('L1')
             self.L2 = sy.symbols('L2')
@@ -386,7 +391,7 @@ class RPPRRRManipulator(DHRobot):
             self.D2 = sy.symbols('D2')
             self.D3 = sy.symbols('D3')
             
-            # Declare DH Table
+            # Declare DH Table - DH Table is reassigned from previous declaration for use in Sympy. Not neccessary but safe for compability
             self.DH_TABLE = sy.Matrix(
                 [
                     [0, 0, self.L0, 0],
@@ -460,7 +465,7 @@ class RPPRRRManipulator(DHRobot):
             # Calculate transformation from B to T
             self.TB_T = self.TB_1*self.T1_2*self.T2_3*self.T3_4*self.T4_5*self.T5_6*self.T6_T*self.TT_T
             self.T1_6 = self.T1_2*self.T2_3*self.T3_4*self.T4_5*self.T5_6*self.T6_T
-            self.TB_T_FK = self.TB_T.subs({ # Substitude in FK joint values
+            self.TB_T_FK = self.TB_T.subs({ # Substitude in joint values to get FK
                 self.L0: 0.10, 
                 self.L1: 0.20,
                 self.L2: 0.30,
@@ -637,6 +642,7 @@ class RPPRRRManipulator(DHRobot):
             #Joint 6 - Revolute
             omega_6_6, omega_dot_6_6, v_dot_6_6, v_centre_dot_6_6, F_6_6, N_6_6 = self.acc_revolute(transform=self.T6_T, omega=omega_5_5, theta_i_dot=self.theta6_i_dot, omega_dot=omega_dot_5_5, theta_i_2dot=self.theta6_2dot, v_dot=v_dot_5_5, PC=self.PC6_6, mass=self.M6, I=self.I_C6_6)
             
+            # Create lists of each values so that they are more easily worked with
             self.omega_values = [omega_0_0, omega_1_1, omega_2_2, omega_3_3, omega_4_4, omega_5_5, omega_6_6]
             self.omega_dot_values = [omega_dot_0_0, omega_dot_1_1, omega_dot_2_2, omega_dot_3_3, omega_dot_4_4, omega_dot_5_5, omega_dot_6_6]
             self.v_dot_values = [v_dot_0_0, v_dot_1_1, v_dot_2_2, v_dot_3_3, v_dot_4_4, v_dot_5_5, v_dot_6_6]
@@ -698,6 +704,31 @@ class RPPRRRManipulator(DHRobot):
             
             
         def acc_revolute(self, transform, omega, theta_i_dot, omega_dot, theta_i_2dot, v_dot, PC, mass, I):
+            '''
+            Given the transform, omega, theta_dot, omega_dot, theta_2dot, v_dot, PC (Centre of Mass), mass, and inertia tensor, will calcualte the needed values for dynamics calculations of a revolute joint
+            
+            :param transform: transformation matrix of curernt link
+            :type transfrom: ndarray / SE3
+            :param omega: Angular velocity of previous joint
+            :type omage: Matrix
+            :param theta_i_dot: Velocity of joint
+            :type theta_i_dot: Matrix
+            :param omega_dot: Angular Acceleration of previous joint
+            :type oemga_dot Matrix
+            :param theta_i_2dot: Acceleration of joint
+            :type theta_i_2dot: Matrix
+            :param v_dot: Linear acceleration of previous joint
+            :type v_dot: Matrix
+            :param PC: Centre of Mass vector of joint
+            :type PC: Matrix
+            :param mass: mass of current joint in KG
+            :type mass: int 
+            :param I: Inertia tensor of joint in Kg.m^2
+            :type I: Matrix
+            
+            :return omega_new, omega_dot_new, v_dot_new, v_centre_dot_new, F_new, N_new: Return the calculated Velcoties and Accelerations for the specified joint as well as the Moment and Forces
+            :return type: tuple<Matrix>
+            '''
             rotation = transform[:3, :3]
             position = transform[:3, 3]
             
@@ -721,6 +752,31 @@ class RPPRRRManipulator(DHRobot):
             return omega_new, omega_dot_new, v_dot_new, v_centre_dot_new, F_new, N_new
         
         def acc_prismatic(self, transform, omega, d_i_dot, omega_dot, d_i_2dot, v_dot, PC, mass, I):
+            '''
+            Given the transform, omega, d_i_dot, omega_dot, d_i_2dot, v_dot, PC (Centre of Mass), mass, and inertia tensor, will calcualte the needed values for dynamics calculations of a revolute joint
+            
+            :param transform: transformation matrix of curernt link
+            :type transfrom: ndarray / SE3
+            :param omega: Angular velocity of previous joint
+            :type omage: Matrix
+            :param d_i_dot: Velocity of joint
+            :type d_i_dot: Matrix
+            :param omega_dot: Angular Acceleration of previous joint
+            :type oemga_dot Matrix
+            :param d_i_2dot: Acceleration of joint
+            :type d_i_2dot: Matrix
+            :param v_dot: Linear acceleration of previous joint
+            :type v_dot: Matrix
+            :param PC: Centre of Mass vector of joint
+            :type PC: Matrix
+            :param mass: mass of current joint in KG
+            :type mass: int 
+            :param I: Inertia tensor of joint in Kg.m^2
+            :type I: Matrix
+            
+            :return omega_new, omega_dot_new, v_dot_new, v_centre_dot_new, F_new, N_new: Return the calculated Velcoties and Accelerations for the specified joint as well as the Moment and Forces
+            :return type: tuple<Matrix>
+            '''
             rotation = transform[:3, :3]
             position = transform[:3, 3]
             
@@ -744,6 +800,25 @@ class RPPRRRManipulator(DHRobot):
             return omega_new, omega_dot_new, v_dot_new, v_centre_dot_new, F_new, N_new
         
         def dynamics_forces(self, transform, N, F, n, f, PC):
+            '''
+            Given the transform, Link Moment, Link Force, Previous link moment, Previous Link force, and Centre of Mass vector of the current joint, will calculate link torque, force and Joint Torque Tau
+            
+            :param transform: transformation matrix of current link
+            :type transform: ndarray / SE3
+            :param N: Moment of current link
+            :type N: Matrix
+            :param F: Force of current link
+            :type F: Matrix
+            :param: n: Moment of previous link
+            :type n: Matrix
+            :param f: Froce of previous link
+            :type f: Matrix
+            :param PC: Centre of mass vector of current link
+            :type PC: Matrix
+            
+            :return link_force, link_torque, tau: Returns calculated values of link force and torque as well as Tau - the Joint Torque
+            :return type: tuple<Matrix>
+            '''
             rotation = transform[:3, :3]
             position = transform[:3, 3]
             
