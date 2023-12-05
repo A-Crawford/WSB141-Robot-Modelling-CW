@@ -8,6 +8,7 @@ from roboticstoolbox import DHRobot, RevoluteMDH, PrismaticMDH, IKSolution
 from spatialmath import SE3
 import sympy as sy
 import pandas as pd
+from matplotlib.gridspec import GridSpec
 
 
 class RPPRRRManipulator(DHRobot):
@@ -189,7 +190,7 @@ class RPPRRRManipulator(DHRobot):
                     
         return valid_solutions, invalid_solutions
     
-    def step3_inverse_kinematic_solver(self, transform):
+    def step3_inverse_kinematic_solver(self, transform: SE3):
         '''
         Given a transformation matrix, will calculate the inverse kinematic solutions. 
         Will calculate the error in the solution regardless of if a valid soltuion is found or not
@@ -265,7 +266,7 @@ class RPPRRRManipulator(DHRobot):
         
         return jacobian_matrix, linear_velocities, angular_velocities
     
-    def static_torques(self, mass, g, transform):
+    def static_torques(self, mass: float, g: float, transform: SE3):
         '''
         Given a point mass load, applied at the origin of the tool frame, will calculate the static force and torque at each joint for a set transform
         
@@ -302,7 +303,7 @@ class RPPRRRManipulator(DHRobot):
         torques = self.pay(wrench, joint_angles, jacobian_matrix, 0) #RBT function to calculate torques from payload
         return torques # return calculated values
     
-    def __transform_type_check(self, var):
+    def __transform_type_check(self, var: SE3):
         '''
         Given a transform, will return a bool as to whether it is a valid type#
         
@@ -336,7 +337,7 @@ class RPPRRRManipulator(DHRobot):
         else:
             return True
         
-    def __correct_list_size(self, input_list):
+    def __correct_list_size(self, input_list: list) -> list:
         '''
         Given a list of size six (6), will return an amended list with a leading and following 0 from the original list
         
@@ -357,7 +358,7 @@ class RPPRRRManipulator(DHRobot):
             print("An error occured: ", e)
         return input_list
         
-    def __compare_len(self, list1, list2):
+    def __compare_len(self, list1: list, list2: list):
         '''
         Given two lists, will return True if the first contains more items than the second
         
@@ -621,7 +622,7 @@ class RPPRRRManipulator(DHRobot):
             pd.set_option('display.max_colwidth', None)
                         
             
-        def acc_revolute(self, transform, omega, theta_i_dot, omega_dot, theta_i_2dot, v_dot, PC, mass, i):
+        def acc_revolute(self, transform: SE3, omega: sy.Matrix, theta_i_dot: float, omega_dot: sy.Matrix, theta_i_2dot: float, v_dot: sy.Matrix, PC: sy.Matrix, mass: float, i: sy.Matrix):
             '''
             Given the transform, omega, theta_dot, omega_dot, theta_2dot, v_dot, PC (Centre of Mass), mass, and inertia tensor, will calcualte the needed values for dynamics calculations of a revolute joint
             
@@ -630,17 +631,17 @@ class RPPRRRManipulator(DHRobot):
             :param omega: Angular velocity of previous joint
             :type omage: Matrix
             :param theta_i_dot: Velocity of joint
-            :type theta_i_dot: Matrix
+            :type theta_i_dot: float
             :param omega_dot: Angular Acceleration of previous joint
             :type oemga_dot Matrix
             :param theta_i_2dot: Acceleration of joint
-            :type theta_i_2dot: Matrix
+            :type theta_i_2dot: float
             :param v_dot: Linear acceleration of previous joint
             :type v_dot: Matrix
             :param PC: Centre of Mass vector of joint
             :type PC: Matrix
             :param mass: mass of current joint in KG
-            :type mass: int 
+            :type mass: float
             :param i: Inertia tensor of joint in Kg.m^2
             :type i: Matrix
             
@@ -669,7 +670,7 @@ class RPPRRRManipulator(DHRobot):
             
             return omega_new, omega_dot_new, v_dot_new, v_centre_dot_new, F_new, N_new
         
-        def acc_prismatic(self, transform, omega, d_i_dot, omega_dot, d_i_2dot, v_dot, PC, mass, i):
+        def acc_prismatic(self, transform: SE3, omega: sy.Matrix, d_i_dot: float, omega_dot: sy.Matrix, d_i_2dot: float, v_dot: sy.Matrix, PC: sy.Matrix, mass: float, i: sy.Matrix):
             '''
             Given the transform, omega, d_i_dot, omega_dot, d_i_2dot, v_dot, PC (Centre of Mass), mass, and inertia tensor, will calcualte the needed values for dynamics calculations of a revolute joint
             
@@ -678,17 +679,17 @@ class RPPRRRManipulator(DHRobot):
             :param omega: Angular velocity of previous joint
             :type omage: Matrix
             :param d_i_dot: Velocity of joint
-            :type d_i_dot: Matrix
+            :type d_i_dot: float
             :param omega_dot: Angular Acceleration of previous joint
             :type oemga_dot Matrix
             :param d_i_2dot: Acceleration of joint
-            :type d_i_2dot: Matrix
+            :type d_i_2dot: float
             :param v_dot: Linear acceleration of previous joint
             :type v_dot: Matrix
             :param PC: Centre of Mass vector of joint
             :type PC: Matrix
             :param mass: mass of current joint in KG
-            :type mass: int 
+            :type mass: float 
             :param i: Inertia tensor of joint in Kg.m^2
             :type i: Matrix
             
@@ -717,7 +718,7 @@ class RPPRRRManipulator(DHRobot):
             
             return omega_new, omega_dot_new, v_dot_new, v_centre_dot_new, F_new, N_new
         
-        def dynamics_forces(self, transform, N, F, n, f, PC):
+        def dynamics_forces(self, transform: SE3, N: sy.Matrix, F: sy.Matrix, n: sy.Matrix, f: sy.Matrix, PC: sy.Matrix):
             '''
             Given the transform, Link Moment, Link Force, Previous link moment, Previous Link force, and Centre of Mass vector of the current joint, will calculate link torque, force and Joint Torque Tau
             
@@ -788,7 +789,7 @@ class RPPRRRManipulator(DHRobot):
             
             return self.omega_values, self.omega_dot_values, self.v_dot_values, self.v_centre_dot_values, self.F_values, self.N_values
             
-        def calc_joint_vals(self, F, N):
+        def calc_joint_vals(self, F: "list[sy.Matrix]", N:  "list[sy.Matrix]"):
             '''
             Method to run the inward iteration calculations and return the total Force, Moment and Joint Torque
             Placed in own method to consolidate and not clutter class __init__ method
@@ -909,6 +910,10 @@ class RPPRRRManipulator(DHRobot):
             return target_list
         
         def display_all_equations(self):
+            '''
+            Method to iterate through all equations and display the pure, unsubstituted equations
+            
+            '''
             print('Outward iteration from base to end effector')
             print('Displaying Omega, Omega_Dot, V_dot, V_centre_dot, Force and Moment for each link...\n\n\n\n')
             for x in range(0, 5):
@@ -926,4 +931,73 @@ class RPPRRRManipulator(DHRobot):
                 print(f'\n\n\n\nLink {x} N_Total: ', self.N_totals[x].evalf())
                 print(f'\n\n\n\nJoint {x} Tau: ', self.joint_torque_totals[x].evalf())
         
+        def cubic_polynomial_TG(self, theta_0: float, theta_f: float, t_f:float) -> "tuple[float]":
+            '''
+            Given the starting (theta_0) and finishing (theta_f) joint angle and the time to compelte the movement (t_f) will compute the cubic polynomial coeffiecents required
+            
+            :param theta_0: Starting Joint Angle 
+            :type theta_0: float
+            :param theta_f: Final Joint Angle
+            :type theta_f: float
+            :param t_f: Time to move in Seconds
+            :type t_f: float
+            '''
+            a_0 = theta_0
+            a_1 = 0
+            a_2 = (3 / np.power(t_f, 2)) * (theta_f - theta_0)
+            a_3 = (-2 /np.power(t_f, 3)) * (theta_f - theta_0)
+            
+            return [a_0, a_1, a_2, a_3]
         
+        def generate_polynomial_plot(self, coeff: "list[float]", t_f: float, prismatic: bool):
+            '''
+            Given the calculated cubic polynomial coeffients and time, will generate plots for Joint Angle, Joint Velocity and Joint Acceleration
+            
+            :param coeff: List of coefficents from cubic polynomial
+            :type coeff: List[float]
+            :param t_f: Time for movement in seconds
+            :type t_f: float
+            
+            :return traj_plot: Joint Angle plot
+            :type traj_plot: sy.Plot
+            :return vel_plot: Joint Velocity plot
+            :type vel_plot: sy.Plot
+            :return acc_plot: Joint Acceleration plot
+            :type acc_plot: sy.Plot
+            '''
+            
+            t = sy.Symbol('t')
+            traj = coeff[0] + (coeff[1] * t) + (coeff[2] * np.power(t, 2)) + (coeff[3] * np.power(t, 3))
+            vel = sy.diff(traj, t)
+            acc = sy.diff(vel, t)
+            
+            # print('Joint Angle = ')
+            # sy.pprint(traj)
+            # print('Joint Velocity = ')
+            # sy.pprint(vel)
+            # print('Joint Acceleration = ')
+            # sy.pprint(acc)
+            if not prismatic:
+                traj_plot = sy.plot(traj, (t, 0, t_f), ylabel='Theta (Degrees)', show=False, title='Position', line_color='blue')
+                vel_plot = sy.plot(vel, (t, 0, t_f), ylabel='Theta Dot', show=False, title='Velocity', line_color='green')
+                acc_plot = sy.plot(acc, (t, 0, t_f), ylabel='Theta Dot Dot', show=False, title='Acceleration', line_color='red')
+            else:
+                traj_plot = sy.plot(traj, (t, 0, t_f), ylabel='d(Degrees)', show=False, title='Position', line_color='blue')
+                vel_plot = sy.plot(vel, (t, 0, t_f), ylabel='d Dot', show=False, title='Velocity', line_color='green')
+                acc_plot = sy.plot(acc, (t, 0, t_f), ylabel='d Dot Dot', show=False, title='Acceleration', line_color='red')
+            
+            return traj_plot, vel_plot, acc_plot
+        
+        def display_cubic_polynomials(self, revolute_plots, d1_plots, d2_plots):
+            '''
+            Method to plot the differnt revolute, d1, and d2, polynomial trajectories
+            
+            :param revolute_plot: List of Sympy.plot objects of revolute Position, Velocity and Acceeleration plots
+            :type revolute_plot: List[sy.Plot]
+            :param d1_plot: List of Sympy.plot objects of prismatic Position, Velocity and Acceeleration plots
+            :type d1_plot: List[sy.Plot]
+            :param d2_plot: List of Sympy.plot objects of prismatic Position, Velocity and Acceeleration plots
+            :type d2_plot: List[sy.Plot]
+            '''
+            sy.plotting.PlotGrid(3, 3, revolute_plots[0], d1_plots[0], d2_plots[0], revolute_plots[1], d1_plots[1], d2_plots[1], revolute_plots[2], d1_plots[2], d2_plots[2])
+            

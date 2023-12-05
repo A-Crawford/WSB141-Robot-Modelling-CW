@@ -51,56 +51,64 @@ if __name__ == "__main__":
     manipulator = RPPRRRManipulator()
     sympy_manipulator = RPPRRRManipulator.RPPRRRManipulatorSympy()
     
-    #Print instance of manipulator to check DH and Qlim Values
-    print(manipulator)
+    # #Print instance of manipulator to check DH and Qlim Values
+    # print(manipulator)
     
-    #STEP 1: Forward Kinematics (FK)
-    #Calcualte forward kinematic solution using the joint angles specified in 'Step 1: Forward Kinematics (FK)'
-    # Robotics Toolbox solution
-    manipulator_fk = manipulator.forward_kinematics(STEP1_FK_JOINT_ANGLES)
+    # #STEP 1: Forward Kinematics (FK)
+    # #Calcualte forward kinematic solution using the joint angles specified in 'Step 1: Forward Kinematics (FK)'
+    # # Robotics Toolbox solution
+    # manipulator_fk = manipulator.forward_kinematics(STEP1_FK_JOINT_ANGLES)
     
-    # Sympy Solution - Calculated within the initialisation of the class
-    sympy_manipulator_fk = np.round(np.array(sympy_manipulator.TB_T_FK).astype(np.float64), 2)
+    # # Sympy Solution - Calculated within the initialisation of the class
+    # sympy_manipulator_fk = np.round(np.array(sympy_manipulator.TB_T_FK).astype(np.float64), 2)
     
-    print(f"RBT FK Solution:\n {manipulator_fk}\nSympy FK Solution:\n {sympy_manipulator_fk}\n") #Display solutions to the user
+    # print(f"RBT FK Solution:\n {manipulator_fk}\nSympy FK Solution:\n {sympy_manipulator_fk}\n") #Display solutions to the user
     
-    #Calulate inverse kinematic solution using the forward kinematic transform to test error
-    #Robotics Toolbox Solution
-    manipulator_ik, invalid_ik = manipulator.inverse_kinematics(manipulator_fk)
-    rbt_fk_ik_error = manipulator.ik_error(manipulator_fk, manipulator_ik[0])
+    # #Calulate inverse kinematic solution using the forward kinematic transform to test error
+    # #Robotics Toolbox Solution
+    # manipulator_ik, invalid_ik = manipulator.inverse_kinematics(manipulator_fk)
+    # rbt_fk_ik_error = manipulator.ik_error(manipulator_fk, manipulator_ik[0])
     
-    # Sympy solution, compared to RBT Solution
-    sympy_joint_angles = manipulator.ikine_LM(np.array(sympy_manipulator.TB_T_FK).astype(np.float64))
-    sympy_fk_ik_error = manipulator.ik_error(manipulator_fk, sympy_joint_angles)
+    # # Sympy solution, compared to RBT Solution
+    # sympy_joint_angles = manipulator.ikine_LM(np.array(sympy_manipulator.TB_T_FK).astype(np.float64))
+    # sympy_fk_ik_error = manipulator.ik_error(manipulator_fk, sympy_joint_angles)
     
-    print(f'\nRBT IK Error: {rbt_fk_ik_error}\nSympy FK Error: {sympy_fk_ik_error}')
+    # print(f'\nRBT IK Error: {rbt_fk_ik_error}\nSympy FK Error: {sympy_fk_ik_error}')
 
-    # STEP 2: Inverse Kinematics (IK)
-    # Now that we have confirmed a very small error in our IK we can use it to solve the transforms specified in 'Step 2: Inverse Kinematics (IK)'
-    # Solve each transform specified in the breif. Q limits applied to manipualtor at initialisation
-    best_sol_1, error_1 = manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_1)
-    best_sol_2, error_2 = manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_2)
-    best_sol_3, error_3 = manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_3)
+    # # STEP 2: Inverse Kinematics (IK)
+    # # Now that we have confirmed a very small error in our IK we can use it to solve the transforms specified in 'Step 2: Inverse Kinematics (IK)'
+    # # Solve each transform specified in the breif. Q limits applied to manipualtor at initialisation
+    # best_sol_1, error_1 = manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_1)
+    # best_sol_2, error_2 = manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_2)
+    # best_sol_3, error_3 = manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_3)
     
-    #STEP 3: Velocity and Static Force
-    #Calculate Jacobian, Velocities and Static Forces, print the Linear and Angular velocities respetively
-    jacobian, linear_velocities, angular_velocities = manipulator.joint_velocities(joint_angles = STEP3_JOINT_ANGLES, joint_velocities=STEP3_JOINT_VELOCITIES)
-    print('\nJacobian Operator: \n', jacobian)
-    print(f'\nFor the the given joint velocities: {STEP3_JOINT_VELOCITIES}, the resultant velocities on the tool frame are as follows:')
-    print("Linear Velocities [X, Y, Z]:", linear_velocities)
-    print("Angular Velocities [X, Y, Z]:",angular_velocities)
+    # #STEP 3: Velocity and Static Force
+    # #Calculate Jacobian, Velocities and Static Forces, print the Linear and Angular velocities respetively
+    # jacobian, linear_velocities, angular_velocities = manipulator.joint_velocities(joint_angles = STEP3_JOINT_ANGLES, joint_velocities=STEP3_JOINT_VELOCITIES)
+    # print('\nJacobian Operator: \n', jacobian)
+    # print(f'\nFor the the given joint velocities: {STEP3_JOINT_VELOCITIES}, the resultant velocities on the tool frame are as follows:')
+    # print("Linear Velocities [X, Y, Z]:", linear_velocities)
+    # print("Angular Velocities [X, Y, Z]:",angular_velocities)
     
-    #Find the torque acting on each joint wuith a point mass of 0.2kg at the tool frame, at the specific transform
-    joint_torques = manipulator.static_torques(mass=0.2, g=9.8, transform=STEP3_STATIC_FORCE_TRANSFORM)
-    print('Joint torques: ', joint_torques)
+    # #Find the torque acting on each joint wuith a point mass of 0.2kg at the tool frame, at the specific transform
+    # joint_torques = manipulator.static_torques(mass=0.2, g=9.8, transform=STEP3_STATIC_FORCE_TRANSFORM)
+    # print('Joint torques: ', joint_torques)
     
-    #Step 4: Manipulator Dynamics
-    if input('\n\n\n\n\nDisplay all unfiltered equations? Y/N ').upper() == 'Y':
-        sympy_manipulator.display_all_equations()
-    if input('\n\n\n\nDisplay table of values for manipulator dynamics? Y/N').upper() == 'Y':
-        print('Table of Dynmaics values for each Link:\n')
-        print(sympy_manipulator.dynamics_table)
+    # #Step 4: Manipulator Dynamics
+    # if input('\n\n\n\n\nDisplay all unfiltered equations? Y/N ').upper() == 'Y':
+    #     sympy_manipulator.display_all_equations()
+    # if input('\n\n\n\nDisplay table of values for manipulator dynamics? Y/N').upper() == 'Y':
+    #     print('Table of Dynmaics values for each Link:\n')
+    #     print(sympy_manipulator.dynamics_table)
         
-        print('\n\nTable of Force, Moment totals as well as Joint Torques:\n')
-        print(sympy_manipulator.totals_table)
-        print('\n Base Joint Torque should be 0 as the base is not a joint')
+    #     print('\n\nTable of Force, Moment totals as well as Joint Torques:\n')
+    #     print(sympy_manipulator.totals_table)
+    #     print('\n Base Joint Torque should be 0 as the base is not a joint')
+    
+    revolute = sympy_manipulator.cubic_polynomial_TG(theta_0=100, theta_f=20, t_f=1)
+    d1 = sympy_manipulator.cubic_polynomial_TG(theta_0=0.1, theta_f=0.5, t_f=1)
+    d2 = sympy_manipulator.cubic_polynomial_TG(theta_0=0.05, theta_f=0.1, t_f=1)
+    revolute_plots = sympy_manipulator.generate_polynomial_plot(revolute, 1)
+    d1_plots = sympy_manipulator.generate_polynomial_plot(d1, 1)
+    d2_plots = sympy_manipulator.generate_polynomial_plot(d2, 1)
+    sympy_manipulator.display_cubic_polynomials(revolute_plots, d1_plots, d2_plots)
