@@ -133,8 +133,8 @@ class RPPRRRManipulator(DHRobot):
             - If a solution cannot be found None will be returned
         '''
         
-        self.joint_type_check(joint_angles, list)
-        joint_angles = self.correct_list_size(joint_angles)
+        self.__joint_type_check(joint_angles, list)
+        joint_angles = self.__correct_list_size(joint_angles)
 
         try: 
             fk_sol = self.fkine(joint_angles)
@@ -158,7 +158,7 @@ class RPPRRRManipulator(DHRobot):
         
         print("\nCalculating Inverse Kinematics for the folllowing transformation matrix:\n", transform)
         
-        self.transform_type_check(transform)
+        self.__transform_type_check(transform)
         self.solutions = []
         for x in range(0, 100):
             ik = self.ikine_LM(transform)
@@ -199,7 +199,7 @@ class RPPRRRManipulator(DHRobot):
         '''
         index = 1
         ik_sol_1 = self.inverse_kinematics(transform, display=True)
-        if self.compare_len(ik_sol_1[0], ik_sol_1[1]):
+        if self.__compare_len(ik_sol_1[0], ik_sol_1[1]):
             index = 0
         
         lowest_error = 100
@@ -228,8 +228,8 @@ class RPPRRRManipulator(DHRobot):
         :type ik_error: float
         '''
         
-        self.transform_type_check(transform)
-        self.joint_type_check(ik_solution, IKSolution)
+        self.__transform_type_check(transform)
+        self.__joint_type_check(ik_solution, IKSolution)
         ik_error = np.linalg.norm(transform - self.fkine(ik_solution.q))
         return ik_error
             
@@ -251,11 +251,11 @@ class RPPRRRManipulator(DHRobot):
         '''
 
         # Type checking for joing_angles
-        self.joint_type_check(joint_angles, list) # Will raise an exception if incorrect type
+        self.__joint_type_check(joint_angles, list) # Will raise an exception if incorrect type
         joint_angles = self.correct_list_size(joint_angles) #Check list has sufficient joint variables, add 0s to start/end for 'fake' joints if not already present
         
         #Type checking for joint_velocities
-        self.joint_type_check(joint_velocities, list) # Will raise an exception if incorrect type
+        self.__joint_type_check(joint_velocities, list) # Will raise an exception if incorrect type
         joint_velocities = self.correct_list_size(joint_velocities) #Check list has sufficient joint variables, add 0s to start/end for 'fake' joints if not already present
         
         jacobian_matrix = self.jacob0(joint_angles)
@@ -280,13 +280,13 @@ class RPPRRRManipulator(DHRobot):
         :type torques: list
         '''
         #Type cheeck transform
-        self.transform_type_check(transform)
+        self.__transform_type_check(transform)
         
         # Calculate joint angles from transform using inverse_kinematics
         # Joint angles used to declare wrench variable 
         index = 1
         ik_sol_1 = self.inverse_kinematics(transform, display=True)
-        if self.compare_len(ik_sol_1[0], ik_sol_1[1]):
+        if self.__compare_len(ik_sol_1[0], ik_sol_1[1]):
             index = 0
         
         lowest_error = 100
@@ -302,7 +302,7 @@ class RPPRRRManipulator(DHRobot):
         torques = self.pay(wrench, joint_angles, jacobian_matrix, 0) #RBT function to calculate torques from payload
         return torques # return calculated values
     
-    def transform_type_check(self, var):
+    def __transform_type_check(self, var):
         '''
         Given a transform, will return a bool as to whether it is a valid type#
         
@@ -318,7 +318,7 @@ class RPPRRRManipulator(DHRobot):
             raise TypeError(f"{type(var)} is not valid. {np.ndarray}, or, {type(SE3)} expected.")
             return False
     
-    def joint_type_check(self, var, output, alt_output=None):
+    def __joint_type_check(self, var, output, alt_output=None):
         '''
         Given a var and desired type, will return Bool whether type is correct. ALternative output can be used when more than one type is accetable, eg. SE3 and ndarray
         
@@ -336,7 +336,7 @@ class RPPRRRManipulator(DHRobot):
         else:
             return True
         
-    def correct_list_size(self, input_list):
+    def __correct_list_size(self, input_list):
         '''
         Given a list of size six (6), will return an amended list with a leading and following 0 from the original list
         
@@ -357,7 +357,7 @@ class RPPRRRManipulator(DHRobot):
             print("An error occured: ", e)
         return input_list
         
-    def compare_len(self, list1, list2):
+    def __compare_len(self, list1, list2):
         '''
         Given two lists, will return True if the first contains more items than the second
         
@@ -545,7 +545,7 @@ class RPPRRRManipulator(DHRobot):
             ])
             
             # Intial Pose at time of emergancy stop
-            self.INIT_POSE = [np.radians(45), 0.5, 0.09, np.radians(90), np.radians(45), np.radians(90)]
+            self.EMERGANCY_STOP_POSE = [np.radians(45), 0.5, 0.09, np.radians(90), np.radians(45), np.radians(90)]
             
             # Joint Velocities at time of emergancy stop
             self.E_STOP_JOINT_VELOCITIES = [-35, 0.1, -0.01, -60, 50, 40]
@@ -615,17 +615,15 @@ class RPPRRRManipulator(DHRobot):
             # Run method to compute linke force/torque and Joint Torque
             self.calc_vel_acc()
             self.calc_joint_vals(F=self.F_values, N=self.N_values)
+            self.__solve_matrices()
+            self.__create_dot_dataframe()
+            self.__create_totals_dataframe()
             
-            print('Torque Joint 6:', self.joint_torque_totals[0])
-            print('Torque Joint 5:', self.joint_torque_totals[1])
-            print('Torque Joint 4:', self.joint_torque_totals[2])
-            print('Torque Joint 3:', self.joint_torque_totals[3])
-            print('Torque Joint 2:', self.joint_torque_totals[4])
-            print('Torque Joint 1:', self.joint_torque_totals[5])
-            print('Torque Joint B:', self.joint_torque_totals[6])
+            print(self.dynamics_table)
+            print(self.totals_data)
+                        
             
-            
-        def acc_revolute(self, transform, omega, theta_i_dot, omega_dot, theta_i_2dot, v_dot, PC, mass, I):
+        def acc_revolute(self, transform, omega, theta_i_dot, omega_dot, theta_i_2dot, v_dot, PC, mass, i):
             '''
             Given the transform, omega, theta_dot, omega_dot, theta_2dot, v_dot, PC (Centre of Mass), mass, and inertia tensor, will calcualte the needed values for dynamics calculations of a revolute joint
             
@@ -645,8 +643,8 @@ class RPPRRRManipulator(DHRobot):
             :type PC: Matrix
             :param mass: mass of current joint in KG
             :type mass: int 
-            :param I: Inertia tensor of joint in Kg.m^2
-            :type I: Matrix
+            :param i: Inertia tensor of joint in Kg.m^2
+            :type i: Matrix
             
             :return omega_new, omega_dot_new, v_dot_new, v_centre_dot_new, F_new, N_new: Return the calculated Velcoties and Accelerations for the specified joint as well as the Moment and Forces
             :return type: tuple<Matrix>
@@ -669,11 +667,11 @@ class RPPRRRManipulator(DHRobot):
             F_new = mass * v_centre_dot_new
             
             # torque action to the centre of mass
-            N_new = I @ omega_dot_new + np.transpose(np.cross(omega_new.transpose(),np.transpose(I @ omega_new)))
+            N_new = i @ omega_dot_new + np.transpose(np.cross(omega_new.transpose(),np.transpose(i @ omega_new)))
             
             return omega_new, omega_dot_new, v_dot_new, v_centre_dot_new, F_new, N_new
         
-        def acc_prismatic(self, transform, omega, d_i_dot, omega_dot, d_i_2dot, v_dot, PC, mass, I):
+        def acc_prismatic(self, transform, omega, d_i_dot, omega_dot, d_i_2dot, v_dot, PC, mass, i):
             '''
             Given the transform, omega, d_i_dot, omega_dot, d_i_2dot, v_dot, PC (Centre of Mass), mass, and inertia tensor, will calcualte the needed values for dynamics calculations of a revolute joint
             
@@ -693,8 +691,8 @@ class RPPRRRManipulator(DHRobot):
             :type PC: Matrix
             :param mass: mass of current joint in KG
             :type mass: int 
-            :param I: Inertia tensor of joint in Kg.m^2
-            :type I: Matrix
+            :param i: Inertia tensor of joint in Kg.m^2
+            :type i: Matrix
             
             :return omega_new, omega_dot_new, v_dot_new, v_centre_dot_new, F_new, N_new: Return the calculated Velcoties and Accelerations for the specified joint as well as the Moment and Forces
             :return type: tuple<Matrix>
@@ -717,7 +715,7 @@ class RPPRRRManipulator(DHRobot):
             F_new = mass * v_centre_dot_new
 
             # torque action at centre of mass
-            N_new = I @ omega_dot_new + np.transpose(np.cross(omega_new.transpose(), np.transpose(I @ omega_new)))
+            N_new = i @ omega_dot_new + np.transpose(np.cross(omega_new.transpose(), np.transpose(i @ omega_new)))
             
             return omega_new, omega_dot_new, v_dot_new, v_centre_dot_new, F_new, N_new
         
@@ -753,36 +751,34 @@ class RPPRRRManipulator(DHRobot):
             return link_force, link_torque, tau
         
         def calc_vel_acc(self):
-            #Transform from current joint
-            #omega from previous joint
-            #theta_dot from current joint
-            #omega_dot from previous joint
-            #theta_2dot from current joint
-            #v_dot from previous joint
-            #PC from current joint
-            #Mass from current joint
-            #Inertia from current joint
+            '''
+            Method to run the calculations for the Angular/Linear Velocities and Accelerations
+            Placed in Method to consolidate and not clutter class __init__ method
             
+            :return omega_values, omega_dot_values, v_dot_values, v_centre_dot_values, F_values, N_values
+            :return type: tuple<list<matrix<float>>>
+            '''
+            #Iterate outwards from base to end effector
             #Base
-            omega_0_0, omega_dot_0_0, v_dot_0_0, v_centre_dot_0_0, F_0_0, N_0_0 = self.acc_revolute(transform=self.TB_1, omega=self.omega_0_0, theta_i_dot=self.thetaB_i_dot, omega_dot=self.omega_dot_0_0, theta_i_2dot=self.thetaB_2dot, v_dot=self.v_dot_0_0, PC=self.PCB_B, mass=self.M0, I=self.I_CB_B) 
+            omega_0_0, omega_dot_0_0, v_dot_0_0, v_centre_dot_0_0, F_0_0, N_0_0 = self.acc_revolute(transform=self.TB_1, omega=self.omega_0_0, theta_i_dot=self.thetaB_i_dot, omega_dot=self.omega_dot_0_0, theta_i_2dot=self.thetaB_2dot, v_dot=self.v_dot_0_0, PC=self.PCB_B, mass=self.M0, i=self.I_CB_B) 
             
             #Joint 1 - Revolute
-            omega_1_1, omega_dot_1_1, v_dot_1_1, v_centre_dot_1_1, F_1_1, N_1_1 = self.acc_revolute(transform=self.T1_2, omega=self.omega_0_0, theta_i_dot=self.theta1_i_dot, omega_dot=self.omega_dot_0_0, theta_i_2dot=self.theta1_2dot, v_dot=self.v_dot_0_0, PC=self.PC1_1, mass=self.M1, I=self.I_C1_1)
+            omega_1_1, omega_dot_1_1, v_dot_1_1, v_centre_dot_1_1, F_1_1, N_1_1 = self.acc_revolute(transform=self.T1_2, omega=self.omega_0_0, theta_i_dot=self.theta1_i_dot, omega_dot=self.omega_dot_0_0, theta_i_2dot=self.theta1_2dot, v_dot=self.v_dot_0_0, PC=self.PC1_1, mass=self.M1, i=self.I_C1_1)
             
             #Joint 2 - Prismatic
-            omega_2_2, omega_dot_2_2, v_dot_2_2, v_centre_dot_2_2, F_2_2, N_2_2 = self.acc_prismatic(transform=self.T2_3, omega=omega_1_1, d_i_dot=self.d2_i_dot, omega_dot=omega_dot_1_1, d_i_2dot=self.d2_2dot, v_dot=v_dot_1_1, PC=self.PC2_2, mass=self.M2, I=self.I_C2_2)
+            omega_2_2, omega_dot_2_2, v_dot_2_2, v_centre_dot_2_2, F_2_2, N_2_2 = self.acc_prismatic(transform=self.T2_3, omega=omega_1_1, d_i_dot=self.d2_i_dot, omega_dot=omega_dot_1_1, d_i_2dot=self.d2_2dot, v_dot=v_dot_1_1, PC=self.PC2_2, mass=self.M2, i=self.I_C2_2)
             
             #Joint 3 - Prismatic
-            omega_3_3, omega_dot_3_3, v_dot_3_3, v_centre_dot_3_3, F_3_3, N_3_3 = self.acc_prismatic(transform=self.T3_4, omega=omega_2_2, d_i_dot=self.d3_i_dot, omega_dot=omega_dot_2_2, d_i_2dot=self.d3_2dot, v_dot=v_dot_2_2, PC=self.PC3_3, mass=self.M3, I=self.I_C3_3)
+            omega_3_3, omega_dot_3_3, v_dot_3_3, v_centre_dot_3_3, F_3_3, N_3_3 = self.acc_prismatic(transform=self.T3_4, omega=omega_2_2, d_i_dot=self.d3_i_dot, omega_dot=omega_dot_2_2, d_i_2dot=self.d3_2dot, v_dot=v_dot_2_2, PC=self.PC3_3, mass=self.M3, i=self.I_C3_3)
             
             #Joint 4 - Revolute
-            omega_4_4, omega_dot_4_4, v_dot_4_4, v_centre_dot_4_4, F_4_4, N_4_4 = self.acc_revolute(transform=self.T4_5, omega=omega_3_3, theta_i_dot=self.theta4_i_dot, omega_dot=omega_dot_3_3, theta_i_2dot=self.theta4_2dot, v_dot=v_dot_3_3, PC=self.PC4_4, mass=self.M4, I=self.I_C4_4)
+            omega_4_4, omega_dot_4_4, v_dot_4_4, v_centre_dot_4_4, F_4_4, N_4_4 = self.acc_revolute(transform=self.T4_5, omega=omega_3_3, theta_i_dot=self.theta4_i_dot, omega_dot=omega_dot_3_3, theta_i_2dot=self.theta4_2dot, v_dot=v_dot_3_3, PC=self.PC4_4, mass=self.M4, i=self.I_C4_4)
             
             #Joint 5 - Revolute
-            omega_5_5, omega_dot_5_5, v_dot_5_5, v_centre_dot_5_5, F_5_5, N_5_5 = self.acc_revolute(transform=self.T5_6, omega=omega_4_4, theta_i_dot=self.theta5_i_dot, omega_dot=omega_dot_4_4, theta_i_2dot=self.theta5_2dot, v_dot=v_dot_4_4, PC=self.PC5_5, mass=self.M5, I=self.I_C5_5)
+            omega_5_5, omega_dot_5_5, v_dot_5_5, v_centre_dot_5_5, F_5_5, N_5_5 = self.acc_revolute(transform=self.T5_6, omega=omega_4_4, theta_i_dot=self.theta5_i_dot, omega_dot=omega_dot_4_4, theta_i_2dot=self.theta5_2dot, v_dot=v_dot_4_4, PC=self.PC5_5, mass=self.M5, i=self.I_C5_5)
             
             #Joint 6 - Revolute
-            omega_6_6, omega_dot_6_6, v_dot_6_6, v_centre_dot_6_6, F_6_6, N_6_6 = self.acc_revolute(transform=self.T6_T, omega=omega_5_5, theta_i_dot=self.theta6_i_dot, omega_dot=omega_dot_5_5, theta_i_2dot=self.theta6_2dot, v_dot=v_dot_5_5, PC=self.PC6_6, mass=self.M6, I=self.I_C6_6)
+            omega_6_6, omega_dot_6_6, v_dot_6_6, v_centre_dot_6_6, F_6_6, N_6_6 = self.acc_revolute(transform=self.T6_T, omega=omega_5_5, theta_i_dot=self.theta6_i_dot, omega_dot=omega_dot_5_5, theta_i_2dot=self.theta6_2dot, v_dot=v_dot_5_5, PC=self.PC6_6, mass=self.M6, i=self.I_C6_6)
             
             # Create lists of each values so that they are more easily worked with
             self.omega_values = [omega_0_0, omega_1_1, omega_2_2, omega_3_3, omega_4_4, omega_5_5, omega_6_6]
@@ -792,19 +788,18 @@ class RPPRRRManipulator(DHRobot):
             self.F_values = [F_0_0, F_1_1, F_2_2, F_3_3, F_4_4, F_5_5, F_6_6]
             self.N_values = [N_0_0, N_1_1, N_2_2, N_3_3, N_4_4, N_5_5, N_6_6]
             
-            self.dynamics_data = {
-                "Omega": self.omega_values,
-                "Omega_Dot": self.omega_dot_values,
-                "V_Dot": self.v_dot_values,
-                "V_Centre_Dot": self.v_centre_dot_values,
-                "Force": self.F_values,
-                "Torque": self.N_values
-            }
-            link_labels = ['Base', 'Link 1', 'Link 2', 'Link 3', 'Link 4', 'Link 5', 'Link 6']
-            self.dynamics_table = pd.DataFrame(self.dynamics_data, index=link_labels)
+            return self.omega_values, self.omega_dot_values, self.v_dot_values, self.v_centre_dot_values, self.F_values, self.N_values
             
         def calc_joint_vals(self, F, N):
+            '''
+            Method to run the inward iteration calculations and return the total Force, Moment and Joint Torque
+            Placed in own method to consolidate and not clutter class __init__ method
             
+            :param F: Force values calculated in 'calc_vel_acc'
+            :type F: List<Matrix>
+            :Param N: Moment values calculaed in 'calc_vel_acc'
+            :type N: List<Matrix>
+            '''
             # Iterate from end effector to base
             self.NT_T = np.array([[0], [0], [0]]) # No intial moment
             self.FT_T = np.array([[0], [-self.MASS*self.G], [0]]) # Froces of gravity
@@ -839,6 +834,74 @@ class RPPRRRManipulator(DHRobot):
             
             
             self.F_totals = [F6_6_total, F5_5_total, F4_4_total, F3_3_total, F2_2_total, F1_1_total, FB_B_total]
-            self.N_total = [N_6_6_total, N_5_5_total, N_4_4_total, N_3_3_total, N_2_2_total, N_1_1_total, N_B_B_total]
+            self.N_totals = [N_6_6_total, N_5_5_total, N_4_4_total, N_3_3_total, N_2_2_total, N_1_1_total, N_B_B_total]
             self.joint_torque_totals = [Torque_Joint6, Torque_Joint5, Torque_Joint4, Torque_Joint3, Torque_Joint2, Torque_Joint1, Torque_JointB]
             
+            return self.F_totals, self.N_totals, self.joint_torque_totals
+        
+        def __create_dot_dataframe(self): #private method
+            '''
+            Private method to create dataframe for visulisation of acc/vel calcs
+            
+            :return dynamics_table: Pandas dataframe of dynamics calcs (UnSubbed)
+            :type DataFrame
+            '''
+            self.dynamics_data = {
+                "Omega": self.solved_omega_values,
+                "Omega_Dot": self.solved_omega_dot_values,
+                "V_Dot": self.solved_v_dot_values,
+                "V_Centre_Dot": self.solved_v_centre_dot_values,
+                "Force": self.solved_F_values,
+                "Torque": self.solved_N_values
+            }
+            link_labels = ['Base', 'Link 1', 'Link 2', 'Link 3', 'Link 4', 'Link 5', 'Link 6']
+            self.dynamics_table = pd.DataFrame(self.dynamics_data, index=link_labels)
+            return self.dynamics_table
+        
+        def __create_totals_dataframe(self): #private method
+            '''
+            Private method to create dataframe for visulisation of F/N/Tau totals
+            
+            :return totals_data: Pandas dataframe of F/N totals and Joint Tau
+            :type DataFrame
+            '''
+            self.totals_data = {
+                "Total Link Force": self.solved_F_totals,
+                "Total Link Moment": self.solved_F_totals,
+                "Joint Torque": self.joint_torque_totals
+            }
+            link_labels = ["Joint 6", "Joint 5", "Joint 4", "Joint 3", "Joint 2", "Joint 1", "Base"]
+            self.totals_table = pd.DataFrame(self.totals_data, index=link_labels)
+            return self.totals_data
+            
+        def __solve_matrices(self):
+            self.solved_omega_values = self.__subsitute_values(self.omega_values)
+            self.solved_omega_dot_values = self.__subsitute_values(self.omega_dot_values)
+            self.solved_v_dot_values = self.__subsitute_values(self.v_dot_values)
+            self.solved_v_centre_dot_values = self.__subsitute_values(self.v_centre_dot_values)
+            self.solved_F_values = self.__subsitute_values(self.F_values)
+            self.solved_N_values = self.__subsitute_values(self.N_values)
+            self.solved_F_totals = self.__subsitute_values(self.F_totals)
+            self.solved_N_totals = self.__subsitute_values(self.N_totals)
+            # self.solved_tau_values = 
+            
+        def __subsitute_values(self, value_list):
+            target_list = []
+            for x in value_list:
+                target_list.append(x.subs({ # Substitude in joint values
+                self.L0: 0.10, 
+                self.L1: 0.20,
+                self.L2: 0.30,
+                self.L3: 0.30,
+                self.L4: 0.10,
+                self.L5: 0.05,
+                self.THETA1: self.EMERGANCY_STOP_POSE[0],
+                self.D2: self.EMERGANCY_STOP_POSE[1],
+                self.D3: self.EMERGANCY_STOP_POSE[2],
+                self.THETA4: self.EMERGANCY_STOP_POSE[3],
+                self.THETA5: self.EMERGANCY_STOP_POSE[4],
+                self.THETA6: self.EMERGANCY_STOP_POSE[5]
+            }))
+            return target_list
+        
+        
