@@ -44,6 +44,8 @@ STEP3_STATIC_FORCE_TRANSFORM = np.array(
 )
 
 if __name__ == "__main__":
+    
+    #TODO add statemnts tracking where you are in the code, the part of the coursework being asseseed and explainign the values presented for the manipualtor dynamics
 
     #Intialise instances of classes for both RBT and Sympy Solutions
     manipulator = RPPRRRManipulator()
@@ -51,8 +53,6 @@ if __name__ == "__main__":
     
     #Print instance of manipulator to check DH and Qlim Values
     print(manipulator)
-    
-    manipulator.plot([0, 0, 0.5, 0, 0, 0, 0, 0], block=True)
     
     #STEP 1: Forward Kinematics (FK)
     #Calcualte forward kinematic solution using the joint angles specified in 'Step 1: Forward Kinematics (FK)'
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     #STEP 3: Velocity and Static Force
     #Calculate Jacobian, Velocities and Static Forces, print the Linear and Angular velocities respetively
     jacobian, linear_velocities, angular_velocities = manipulator.joint_velocities(joint_angles = STEP3_JOINT_ANGLES, joint_velocities=STEP3_JOINT_VELOCITIES)
-    print('Jacobian Operator: \n', jacobian)
+    print('\nJacobian Operator: \n', jacobian)
     print(f'\nFor the the given joint velocities: {STEP3_JOINT_VELOCITIES}, the resultant velocities on the tool frame are as follows:')
     print("Linear Velocities [X, Y, Z]:", linear_velocities)
     print("Angular Velocities [X, Y, Z]:",angular_velocities)
@@ -93,3 +93,14 @@ if __name__ == "__main__":
     #Find the torque acting on each joint wuith a point mass of 0.2kg at the tool frame, at the specific transform
     joint_torques = manipulator.static_torques(mass=0.2, g=9.8, transform=STEP3_STATIC_FORCE_TRANSFORM)
     print('Joint torques: ', joint_torques)
+    
+    #Step 4: Manipulator Dynamics
+    if input('\n\n\n\n\nDisplay all unfiltered equations? Y/N ').upper() == 'Y':
+        sympy_manipulator.display_all_equations()
+    if input('\n\n\n\nDisplay table of values for manipulator dynamics? Y/N').upper() == 'Y':
+        print('Table of Dynmaics values for each Link:\n')
+        print(sympy_manipulator.dynamics_table)
+        
+        print('\n\nTable of Force, Moment totals as well as Joint Torques:\n')
+        print(sympy_manipulator.totals_table)
+        print('\n Base Joint Torque should be 0 as the base is not a joint')

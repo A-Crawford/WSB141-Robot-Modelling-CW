@@ -252,11 +252,11 @@ class RPPRRRManipulator(DHRobot):
 
         # Type checking for joing_angles
         self.__joint_type_check(joint_angles, list) # Will raise an exception if incorrect type
-        joint_angles = self.correct_list_size(joint_angles) #Check list has sufficient joint variables, add 0s to start/end for 'fake' joints if not already present
+        joint_angles = self.__correct_list_size(joint_angles) #Check list has sufficient joint variables, add 0s to start/end for 'fake' joints if not already present
         
         #Type checking for joint_velocities
         self.__joint_type_check(joint_velocities, list) # Will raise an exception if incorrect type
-        joint_velocities = self.correct_list_size(joint_velocities) #Check list has sufficient joint variables, add 0s to start/end for 'fake' joints if not already present
+        joint_velocities = self.__correct_list_size(joint_velocities) #Check list has sufficient joint variables, add 0s to start/end for 'fake' joints if not already present
         
         jacobian_matrix = self.jacob0(joint_angles)
         velocites = jacobian_matrix @ joint_velocities
@@ -374,7 +374,7 @@ class RPPRRRManipulator(DHRobot):
 
     class RPPRRRManipulatorSympy():
         '''
-        Sub-Class of RPPRRRManipulator Class which utilises Sympy library to expand capabilities of parent class
+        Sub-Class of RPPRRRManipulator Class which utilises Sympy library to expand capabilities of RPPRRRManipulator class
         '''
         def __init__(self):
             # Delcare Symbols for DH table abd transformation, reassignment of previous variables now that they have been used in the initialisation of the RBT model
@@ -618,9 +618,7 @@ class RPPRRRManipulator(DHRobot):
             self.__solve_matrices()
             self.__create_dot_dataframe()
             self.__create_totals_dataframe()
-            
-            print(self.dynamics_table)
-            print(self.totals_data)
+            pd.set_option('display.max_colwidth', None)
                         
             
         def acc_revolute(self, transform, omega, theta_i_dot, omega_dot, theta_i_2dot, v_dot, PC, mass, i):
@@ -746,7 +744,7 @@ class RPPRRRManipulator(DHRobot):
             
             link_force = rotation @ f + F
             
-            tau = n.transpose() * np.matrix([[0], [0], [1]])
+            tau = n.transpose() * sy.Matrix([[0], [0], [1]])
             
             return link_force, link_torque, tau
         
@@ -868,13 +866,16 @@ class RPPRRRManipulator(DHRobot):
             self.totals_data = {
                 "Total Link Force": self.solved_F_totals,
                 "Total Link Moment": self.solved_F_totals,
-                "Joint Torque": self.joint_torque_totals
+                "Joint Torque": self.solved_tau_values
             }
             link_labels = ["Joint 6", "Joint 5", "Joint 4", "Joint 3", "Joint 2", "Joint 1", "Base"]
             self.totals_table = pd.DataFrame(self.totals_data, index=link_labels)
-            return self.totals_data
-            
+            return self.totals_table
+        
         def __solve_matrices(self):
+            '''
+            Private method to substitute values into new lists, removed from class __init__ method
+            '''
             self.solved_omega_values = self.__subsitute_values(self.omega_values)
             self.solved_omega_dot_values = self.__subsitute_values(self.omega_dot_values)
             self.solved_v_dot_values = self.__subsitute_values(self.v_dot_values)
@@ -883,9 +884,12 @@ class RPPRRRManipulator(DHRobot):
             self.solved_N_values = self.__subsitute_values(self.N_values)
             self.solved_F_totals = self.__subsitute_values(self.F_totals)
             self.solved_N_totals = self.__subsitute_values(self.N_totals)
-            # self.solved_tau_values = 
+            self.solved_tau_values = self.__subsitute_values(self.joint_torque_totals)
             
         def __subsitute_values(self, value_list):
+            '''
+            Private method to handle the logic of value substituion using the Sympy library
+            '''
             target_list = []
             for x in value_list:
                 target_list.append(x.subs({ # Substitude in joint values
@@ -903,5 +907,23 @@ class RPPRRRManipulator(DHRobot):
                 self.THETA6: self.EMERGANCY_STOP_POSE[5]
             }))
             return target_list
+        
+        def display_all_equations(self):
+            print('Outward iteration from base to end effector')
+            print('Displaying Omega, Omega_Dot, V_dot, V_centre_dot, Force and Moment for each link...\n\n\n\n')
+            for x in range(0, 5):
+                print(f'\n\n\n\nLink {x} Omega: ', self.omega_values[x].evalf())
+                print(f'\n\n\n\nLink {x} Omega_Dot: ', self.omega_dot_values[x].evalf())
+                print(f'\n\n\n\nLink {x} v_dot: ', self.v_dot_values[x].evalf())
+                print(f'\n\n\n\nLink {x} v_centre_dot: ', self.v_centre_dot_values[x].evalf())
+                print(f'\n\n\n\nLink {x} F_value: ', self.F_values[x].evalf())
+                print(f'\n\n\n\nLink {x} N_Value: ', self.N_values[x].evalf())
+            
+            print('\n\n\n\nInward iteration from end effector to base')
+            print('\n\n\n\nDisaplying Total Force and Moment on each link, as well as torque required on each joint...\n\n\n\n')
+            for x in range(5, 0, -1):
+                print(f'\n\n\n\nLink {x} F_Total: ', self.F_totals[x].evalf())
+                print(f'\n\n\n\nLink {x} N_Total: ', self.N_totals[x].evalf())
+                print(f'\n\n\n\nJoint {x} Tau: ', self.joint_torque_totals[x].evalf())
         
         
