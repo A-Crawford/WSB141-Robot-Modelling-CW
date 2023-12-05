@@ -949,7 +949,7 @@ class RPPRRRManipulator(DHRobot):
             
             return [a_0, a_1, a_2, a_3]
         
-        def generate_polynomial_plot(self, coeff: "list[float]", t_f: float, prismatic: bool):
+        def generate_polynomial_plot(self, coeff: "list[float]", t_f: float, prismatic=False):
             '''
             Given the calculated cubic polynomial coeffients and time, will generate plots for Joint Angle, Joint Velocity and Joint Acceleration
             
