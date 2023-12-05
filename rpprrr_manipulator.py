@@ -949,7 +949,7 @@ class RPPRRRManipulator(DHRobot):
             
             return [a_0, a_1, a_2, a_3]
         
-        def generate_polynomial_plot(self, coeff: "list[float]", t_f: float, prismatic=False):
+        def generate_polynomial_plot(self, coeff: "list[float]", t_f: float, joint_type: str):
             '''
             Given the calculated cubic polynomial coeffients and time, will generate plots for Joint Angle, Joint Velocity and Joint Acceleration
             
@@ -957,6 +957,8 @@ class RPPRRRManipulator(DHRobot):
             :type coeff: List[float]
             :param t_f: Time for movement in seconds
             :type t_f: float
+            :param joint_type: type of joint for title labelling
+            :type joint_type: str
             
             :return traj_plot: Joint Angle plot
             :type traj_plot: sy.Plot
@@ -971,20 +973,18 @@ class RPPRRRManipulator(DHRobot):
             vel = sy.diff(traj, t)
             acc = sy.diff(vel, t)
             
-            # print('Joint Angle = ')
-            # sy.pprint(traj)
-            # print('Joint Velocity = ')
-            # sy.pprint(vel)
-            # print('Joint Acceleration = ')
-            # sy.pprint(acc)
-            if not prismatic:
+            if joint_type.upper() == 'REVOLUTE':
                 traj_plot = sy.plot(traj, (t, 0, t_f), ylabel='Theta (Degrees)', show=False, title='Position', line_color='blue')
                 vel_plot = sy.plot(vel, (t, 0, t_f), ylabel='Theta Dot', show=False, title='Velocity', line_color='green')
                 acc_plot = sy.plot(acc, (t, 0, t_f), ylabel='Theta Dot Dot', show=False, title='Acceleration', line_color='red')
-            else:
-                traj_plot = sy.plot(traj, (t, 0, t_f), ylabel='d(Degrees)', show=False, title='Position', line_color='blue')
-                vel_plot = sy.plot(vel, (t, 0, t_f), ylabel='d Dot', show=False, title='Velocity', line_color='green')
-                acc_plot = sy.plot(acc, (t, 0, t_f), ylabel='d Dot Dot', show=False, title='Acceleration', line_color='red')
+            elif joint_type.upper() == 'D1':
+                traj_plot = sy.plot(traj, (t, 0, t_f), ylabel='D1 (Degrees)', show=False, title='Position', line_color='blue')
+                vel_plot = sy.plot(vel, (t, 0, t_f), ylabel='D1 Dot', show=False, title='Velocity', line_color='green')
+                acc_plot = sy.plot(acc, (t, 0, t_f), ylabel='D1 Dot Dot', show=False, title='Acceleration', line_color='red')
+            elif joint_type.upper() == "D2":
+                traj_plot = sy.plot(traj, (t, 0, t_f), ylabel='D2 (Degrees)', show=False, title='Position', line_color='blue')
+                vel_plot = sy.plot(vel, (t, 0, t_f), ylabel='D2 Dot', show=False, title='Velocity', line_color='green')
+                acc_plot = sy.plot(acc, (t, 0, t_f), ylabel='D2 Dot Dot', show=False, title='Acceleration', line_color='red')
             
             return traj_plot, vel_plot, acc_plot
         
