@@ -105,10 +105,12 @@ if __name__ == "__main__":
     #     print(sympy_manipulator.totals_table)
     #     print('\n Base Joint Torque should be 0 as the base is not a joint')
     
-    revolute = sympy_manipulator.cubic_polynomial_TG(theta_0=100, theta_f=20, t_f=1)
-    d1 = sympy_manipulator.cubic_polynomial_TG(theta_0=0.1, theta_f=0.5, t_f=1)
-    d2 = sympy_manipulator.cubic_polynomial_TG(theta_0=0.05, theta_f=0.1, t_f=1)
-    revolute_plots = sympy_manipulator.generate_polynomial_plot(revolute, 1, joint_type='revolute')
-    d1_plots = sympy_manipulator.generate_polynomial_plot(d1, 1, joint_type='d1')
-    d2_plots = sympy_manipulator.generate_polynomial_plot(d2, 1, joint_type='d2')
-    sympy_manipulator.display_cubic_polynomials(revolute_plots, d1_plots, d2_plots)
+    # revolute = sympy_manipulator.cubic_polynomial_TG(theta_0=100, theta_f=20, t_f=1)
+    # d1 = sympy_manipulator.cubic_polynomial_TG(theta_0=0.1, theta_f=0.5, t_f=1)
+    # d2 = sympy_manipulator.cubic_polynomial_TG(theta_0=0.05, theta_f=0.1, t_f=1)
+    # revolute_plots = sympy_manipulator.generate_polynomial_plot(revolute, 1, joint_type='revolute')
+    # d1_plots = sympy_manipulator.generate_polynomial_plot(d1, 1, joint_type='d1')
+    # d2_plots = sympy_manipulator.generate_polynomial_plot(d2, 1, joint_type='d2')
+    # sympy_manipulator.display_cubic_polynomials(revolute_plots, d1_plots, d2_plots)
+
+    

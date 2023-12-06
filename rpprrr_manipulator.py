@@ -8,7 +8,9 @@ from roboticstoolbox import DHRobot, RevoluteMDH, PrismaticMDH, IKSolution
 from spatialmath import SE3
 import sympy as sy
 import pandas as pd
-from matplotlib.gridspec import GridSpec
+
+import roboticstoolbox as rbt
+rbt.models.DH.Puma560.ikine_a
 
 
 class RPPRRRManipulator(DHRobot):
@@ -224,6 +226,8 @@ class RPPRRRManipulator(DHRobot):
         
         :param transform: The transform the IK solution is based on
         :type transform: SE3 and numpy.ndarray
+        :param ik_solution: proposed IK solution
+        :type ik_solution: IKSolutions
         
         :return ik_error: numerical error
         :type ik_error: float
@@ -1000,4 +1004,5 @@ class RPPRRRManipulator(DHRobot):
             :type d2_plot: List[sy.Plot]
             '''
             sy.plotting.PlotGrid(3, 3, revolute_plots[0], d1_plots[0], d2_plots[0], revolute_plots[1], d1_plots[1], d2_plots[1], revolute_plots[2], d1_plots[2], d2_plots[2])
+
             
