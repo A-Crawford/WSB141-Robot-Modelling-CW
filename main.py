@@ -46,6 +46,7 @@ STEP3_STATIC_FORCE_TRANSFORM = np.array(
 if __name__ == "__main__":
     
     #TODO add statemnts tracking where you are in the code, the part of the coursework being asseseed and explainign the values presented for the manipualtor dynamics
+    #TODO change Inverse kinematic fucntions to only display the number of genuine possible soltuions, found in textbox based on a0=a3=a6 etc. or something
 
     #Intialise instances of classes for both RBT and Sympy Solutions
     manipulator = RPPRRRManipulator()
@@ -105,12 +106,22 @@ if __name__ == "__main__":
     #     print(sympy_manipulator.totals_table)
     #     print('\n Base Joint Torque should be 0 as the base is not a joint')
     
-    # revolute = sympy_manipulator.cubic_polynomial_TG(theta_0=100, theta_f=20, t_f=1)
-    # d1 = sympy_manipulator.cubic_polynomial_TG(theta_0=0.1, theta_f=0.5, t_f=1)
-    # d2 = sympy_manipulator.cubic_polynomial_TG(theta_0=0.05, theta_f=0.1, t_f=1)
-    # revolute_plots = sympy_manipulator.generate_polynomial_plot(revolute, 1, joint_type='revolute')
-    # d1_plots = sympy_manipulator.generate_polynomial_plot(d1, 1, joint_type='d1')
-    # d2_plots = sympy_manipulator.generate_polynomial_plot(d2, 1, joint_type='d2')
-    # sympy_manipulator.display_cubic_polynomials(revolute_plots, d1_plots, d2_plots)
+    # revolute_cubic = sympy_manipulator.cubic_polynomial_TG(theta_0=100, theta_f=20, t_f=1)
+    # d1_cubic = sympy_manipulator.cubic_polynomial_TG(theta_0=0.1, theta_f=0.5, t_f=1)
+    # d2_cubic = sympy_manipulator.cubic_polynomial_TG(theta_0=0.05, theta_f=0.1, t_f=1)
+    # revolute_plots_cubic = sympy_manipulator.generate_polynomial_plot(revolute_cubic, 1, joint_type='revolute')
+    # d1_plots_cubic = sympy_manipulator.generate_polynomial_plot(d1_cubic, 1, joint_type='d1')
+    # d2_plots_cubic = sympy_manipulator.generate_polynomial_plot(d2_cubic, 1, joint_type='d2')
+    # # sympy_manipulator.display_polynomials(revolute_plots_cubic, d1_plots_cubic, d2_plots_cubic)
 
+    # revolute_quintic = sympy_manipulator.quintic_polynomial_TG(theta_0=100, theta_f=20, t_f=1)
+    # d1_quintic = sympy_manipulator.quintic_polynomial_TG(theta_0=0.1, theta_f=0.5, t_f=1)
+    # d2_quintic = sympy_manipulator.quintic_polynomial_TG(theta_0=0.05, theta_f=0.1, t_f=1)
+    # revolute_plots_quintic = sympy_manipulator.generate_polynomial_plot(revolute_quintic, 1, joint_type='revolute', order=5)
+    # d1_plots_quintic = sympy_manipulator.generate_polynomial_plot(d1_quintic, 1, joint_type='d1', order=5)
+    # d2_plots_quintic = sympy_manipulator.generate_polynomial_plot(d2_quintic, 1, joint_type='d2', order=5)
+    # # sympy_manipulator.display_polynomials(revolute_plots_quintic, d1_plots_quintic, d2_plots_quintic)
     
+    # sympy_manipulator.display_all_polynomial_plots(revolute_plots_cubic, revolute_plots_quintic, d1_plots_cubic, d1_plots_quintic, d2_plots_cubic, d2_plots_quintic)
+    
+    # manipulator.generate_trapezoida_velocity(theta_s=100, theta_f=20, t_r=4)

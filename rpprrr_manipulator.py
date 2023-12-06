@@ -8,10 +8,7 @@ from roboticstoolbox import DHRobot, RevoluteMDH, PrismaticMDH, IKSolution
 from spatialmath import SE3
 import sympy as sy
 import pandas as pd
-
 import roboticstoolbox as rbt
-rbt.models.DH.Puma560.ikine_a
-
 
 class RPPRRRManipulator(DHRobot):
     """
@@ -118,7 +115,7 @@ class RPPRRRManipulator(DHRobot):
             links, 
             name="RPPRRR Manipulator",
         )
-
+        
 
     def forward_kinematics(self, joint_angles: list) -> SE3:
         '''
@@ -306,6 +303,13 @@ class RPPRRRManipulator(DHRobot):
         wrench = np.array([0, mass*g, 0, 0, 0, 0]).T # X, Y, Z, Rx, Ry, Rz. Only gravity acting on the Y axis
         torques = self.pay(wrench, joint_angles, jacobian_matrix, 0) #RBT function to calculate torques from payload
         return torques # return calculated values
+    
+    def generate_trapezoida_velocity(self, theta_s, theta_f, t_r): # TODO: Possibly remove
+        tg = rbt.trapezoidal(q0=theta_s, qf=theta_f, t=t_r)
+        print(len(tg))
+        tg.plot(block=True)
+        
+        print(rbt.trapezoidal_func(q0=theta_s, qf=theta_f, T=t_r)(1))
     
     def __transform_type_check(self, var: SE3):
         '''
@@ -842,6 +846,128 @@ class RPPRRRManipulator(DHRobot):
             
             return self.F_totals, self.N_totals, self.joint_torque_totals
         
+        def display_all_equations(self):
+            '''
+            Method to iterate through all equations and display the pure, unsubstituted equations
+            
+            '''
+            print('Outward iteration from base to end effector')
+            print('Displaying Omega, Omega_Dot, V_dot, V_centre_dot, Force and Moment for each link...\n\n\n\n')
+            for x in range(0, 5):
+                print(f'\n\n\n\nLink {x} Omega: ', self.omega_values[x].evalf())
+                print(f'\n\n\n\nLink {x} Omega_Dot: ', self.omega_dot_values[x].evalf())
+                print(f'\n\n\n\nLink {x} v_dot: ', self.v_dot_values[x].evalf())
+                print(f'\n\n\n\nLink {x} v_centre_dot: ', self.v_centre_dot_values[x].evalf())
+                print(f'\n\n\n\nLink {x} F_value: ', self.F_values[x].evalf())
+                print(f'\n\n\n\nLink {x} N_Value: ', self.N_values[x].evalf())
+            
+            print('\n\n\n\nInward iteration from end effector to base')
+            print('\n\n\n\nDisaplying Total Force and Moment on each link, as well as torque required on each joint...\n\n\n\n')
+            for x in range(5, 0, -1):
+                print(f'\n\n\n\nLink {x} F_Total: ', self.F_totals[x].evalf())
+                print(f'\n\n\n\nLink {x} N_Total: ', self.N_totals[x].evalf())
+                print(f'\n\n\n\nJoint {x} Tau: ', self.joint_torque_totals[x].evalf())
+        
+        def cubic_polynomial_TG(self, theta_0: float, theta_f: float, t_f:float) -> "tuple[float]":
+            '''
+            Given the starting (theta_0) and finishing (theta_f) joint angle and the time to compelte the movement (t_f) will compute the cubic polynomial coeffiecents required
+            
+            :param theta_0: Starting Joint Angle 
+            :type theta_0: float
+            :param theta_f: Final Joint Angle
+            :type theta_f: float
+            :param t_f: Time to move in Seconds
+            :type t_f: float
+            '''
+            a_0 = theta_0
+            a_1 = 0
+            a_2 = (3 / np.power(t_f, 2)) * (theta_f - theta_0)
+            a_3 = (-2 /np.power(t_f, 3)) * (theta_f - theta_0)
+            
+            return [a_0, a_1, a_2, a_3]
+        
+        def quintic_polynomial_TG(self, theta_0: float, theta_f: float, t_f: float):
+            '''
+            Calculate quintic polynomial
+            '''
+            t = sy.Symbol('t')
+            theta_0_dot = sy.diff(theta_0, t)
+            theta_f_dot = sy.diff(theta_f, t)
+            theta_0_2dot = sy.diff(theta_0_dot, t)
+            theta_f_2dot = sy.diff(theta_f_dot, t)
+            
+            a_0 = theta_0
+            a_1 = theta_0_dot
+            a_2 = theta_0_2dot / 2
+            
+            a_3 = ((20 * theta_f) - (20 * theta_0) - ((8 * theta_f_dot) + (12 * theta_0_dot)) * t_f - ((3 * theta_0_2dot) - (theta_f_2dot)) * np.power(t_f, 2)) / (2 * np.power(t_f, 3))
+            
+            a_4 = ((30 * theta_0) - (30 * theta_f) + ((14 * theta_f_dot) + (16 * theta_0_dot)) * t_f +  ((3 * theta_0_2dot) - (2 * theta_f_2dot)) * np.power(t_f, 2)) / (2 * np.power(t_f, 4))
+            
+            a_5 = ((12 * theta_f) - (12 * theta_0) - ((6 * theta_f_dot) + (6 * theta_0_dot)) * t_f - (theta_0_2dot - theta_f_2dot) * np.power(t_f, 2)) / (2 * np.power(t_f, 5))
+            
+            return [a_0, a_1, a_2, a_3, a_4, a_5]
+        
+        def generate_polynomial_plot(self, coeff: "list[float]", t_f: float, joint_type: str, order=3):
+            '''
+            Given the calculated cubic polynomial coeffients and time, will generate plots for Joint Angle, Joint Velocity and Joint Acceleration
+            
+            :param coeff: List of coefficents from cubic polynomial
+            :type coeff: List[float]
+            :param t_f: Time for movement in seconds
+            :type t_f: float
+            :param joint_type: type of joint for title labelling
+            :type joint_type: str
+            
+            :return traj_plot: Joint Angle plot
+            :type traj_plot: sy.Plot
+            :return vel_plot: Joint Velocity plot
+            :type vel_plot: sy.Plot
+            :return acc_plot: Joint Acceleration plot
+            :type acc_plot: sy.Plot
+            '''
+            line_color = [['blue', 'green', 'red'], ['dodgerblue', 'magenta', 'darkviolet']]
+            index = 0
+            t = sy.Symbol('t')
+            if order == 5:
+                traj = coeff[0] + (coeff[1] * t) + (coeff[2] * np.power(t, 2)) + (coeff[3] * np.power(t, 3)) + (coeff[4] * np.power(t, 4)) + (coeff[5] * np.power(t, 5))
+                index = 1
+            else:
+                traj = coeff[0] + (coeff[1] * t) + (coeff[2] * np.power(t, 2)) + (coeff[3] * np.power(t, 3))
+            vel = sy.diff(traj, t)
+            acc = sy.diff(vel, t)
+            
+            if joint_type.upper() == 'REVOLUTE':
+                traj_plot = sy.plot(traj, (t, 0, t_f), ylabel='Theta (Degrees)', show=False, title='Position', line_color=line_color[index][0])
+                vel_plot = sy.plot(vel, (t, 0, t_f), ylabel='Theta Dot', show=False, title='Velocity', line_color=line_color[index][1])
+                acc_plot = sy.plot(acc, (t, 0, t_f), ylabel='Theta Dot Dot', show=False, title='Acceleration', line_color=line_color[index][2])
+            elif joint_type.upper() == 'D1':
+                traj_plot = sy.plot(traj, (t, 0, t_f), ylabel='D1 (Degrees)', show=False, title='Position', line_color=line_color[index][0])
+                vel_plot = sy.plot(vel, (t, 0, t_f), ylabel='D1 Dot', show=False, title='Velocity', line_color=line_color[index][1])
+                acc_plot = sy.plot(acc, (t, 0, t_f), ylabel='D1 Dot Dot', show=False, title='Acceleration', line_color=line_color[index][2])
+            elif joint_type.upper() == "D2":
+                traj_plot = sy.plot(traj, (t, 0, t_f), ylabel='D2 (Degrees)', show=False, title='Position', line_color=line_color[index][0])
+                vel_plot = sy.plot(vel, (t, 0, t_f), ylabel='D2 Dot', show=False, title='Velocity', line_color=line_color[index][1])
+                acc_plot = sy.plot(acc, (t, 0, t_f), ylabel='D2 Dot Dot', show=False, title='Acceleration', line_color=line_color[index][2])
+            
+            return traj_plot, vel_plot, acc_plot
+        
+        def display_polynomials(self, revolute_plots, d1_plots, d2_plots):
+            '''
+            Method to plot the differnt revolute, d1, and d2, polynomial trajectories
+            
+            :param revolute_plot: List of Sympy.plot objects of revolute Position, Velocity and Acceeleration plots
+            :type revolute_plot: List[sy.Plot]
+            :param d1_plot: List of Sympy.plot objects of prismatic Position, Velocity and Acceeleration plots
+            :type d1_plot: List[sy.Plot]
+            :param d2_plot: List of Sympy.plot objects of prismatic Position, Velocity and Acceeleration plots
+            :type d2_plot: List[sy.Plot]
+            '''
+            sy.plotting.PlotGrid(3, 3, revolute_plots[0], d1_plots[0], d2_plots[0], revolute_plots[1], d1_plots[1], d2_plots[1], revolute_plots[2], d1_plots[2], d2_plots[2])
+            
+        def display_all_polynomial_plots(self, revolute_cubic, revolute_quintic, d1_cubic, d1_quintic, d2_cubic, d2_quintic):
+            sy.plotting.PlotGrid(3, 6, revolute_cubic[0], revolute_quintic[0], d1_cubic[0], d1_quintic[0], d2_cubic[0], d2_quintic[0], revolute_cubic[1], revolute_quintic[1], d1_cubic[1], d1_quintic[1], d2_cubic[1], d2_quintic[1], revolute_cubic[2], revolute_quintic[2], d1_cubic[2], d1_quintic[2], d2_cubic[2], d2_quintic[2])
+        
         def __create_dot_dataframe(self): #private method
             '''
             Private method to create dataframe for visulisation of acc/vel calcs
@@ -912,97 +1038,4 @@ class RPPRRRManipulator(DHRobot):
                 self.THETA6: self.EMERGANCY_STOP_POSE[5]
             }))
             return target_list
-        
-        def display_all_equations(self):
-            '''
-            Method to iterate through all equations and display the pure, unsubstituted equations
-            
-            '''
-            print('Outward iteration from base to end effector')
-            print('Displaying Omega, Omega_Dot, V_dot, V_centre_dot, Force and Moment for each link...\n\n\n\n')
-            for x in range(0, 5):
-                print(f'\n\n\n\nLink {x} Omega: ', self.omega_values[x].evalf())
-                print(f'\n\n\n\nLink {x} Omega_Dot: ', self.omega_dot_values[x].evalf())
-                print(f'\n\n\n\nLink {x} v_dot: ', self.v_dot_values[x].evalf())
-                print(f'\n\n\n\nLink {x} v_centre_dot: ', self.v_centre_dot_values[x].evalf())
-                print(f'\n\n\n\nLink {x} F_value: ', self.F_values[x].evalf())
-                print(f'\n\n\n\nLink {x} N_Value: ', self.N_values[x].evalf())
-            
-            print('\n\n\n\nInward iteration from end effector to base')
-            print('\n\n\n\nDisaplying Total Force and Moment on each link, as well as torque required on each joint...\n\n\n\n')
-            for x in range(5, 0, -1):
-                print(f'\n\n\n\nLink {x} F_Total: ', self.F_totals[x].evalf())
-                print(f'\n\n\n\nLink {x} N_Total: ', self.N_totals[x].evalf())
-                print(f'\n\n\n\nJoint {x} Tau: ', self.joint_torque_totals[x].evalf())
-        
-        def cubic_polynomial_TG(self, theta_0: float, theta_f: float, t_f:float) -> "tuple[float]":
-            '''
-            Given the starting (theta_0) and finishing (theta_f) joint angle and the time to compelte the movement (t_f) will compute the cubic polynomial coeffiecents required
-            
-            :param theta_0: Starting Joint Angle 
-            :type theta_0: float
-            :param theta_f: Final Joint Angle
-            :type theta_f: float
-            :param t_f: Time to move in Seconds
-            :type t_f: float
-            '''
-            a_0 = theta_0
-            a_1 = 0
-            a_2 = (3 / np.power(t_f, 2)) * (theta_f - theta_0)
-            a_3 = (-2 /np.power(t_f, 3)) * (theta_f - theta_0)
-            
-            return [a_0, a_1, a_2, a_3]
-        
-        def generate_polynomial_plot(self, coeff: "list[float]", t_f: float, joint_type: str):
-            '''
-            Given the calculated cubic polynomial coeffients and time, will generate plots for Joint Angle, Joint Velocity and Joint Acceleration
-            
-            :param coeff: List of coefficents from cubic polynomial
-            :type coeff: List[float]
-            :param t_f: Time for movement in seconds
-            :type t_f: float
-            :param joint_type: type of joint for title labelling
-            :type joint_type: str
-            
-            :return traj_plot: Joint Angle plot
-            :type traj_plot: sy.Plot
-            :return vel_plot: Joint Velocity plot
-            :type vel_plot: sy.Plot
-            :return acc_plot: Joint Acceleration plot
-            :type acc_plot: sy.Plot
-            '''
-            
-            t = sy.Symbol('t')
-            traj = coeff[0] + (coeff[1] * t) + (coeff[2] * np.power(t, 2)) + (coeff[3] * np.power(t, 3))
-            vel = sy.diff(traj, t)
-            acc = sy.diff(vel, t)
-            
-            if joint_type.upper() == 'REVOLUTE':
-                traj_plot = sy.plot(traj, (t, 0, t_f), ylabel='Theta (Degrees)', show=False, title='Position', line_color='blue')
-                vel_plot = sy.plot(vel, (t, 0, t_f), ylabel='Theta Dot', show=False, title='Velocity', line_color='green')
-                acc_plot = sy.plot(acc, (t, 0, t_f), ylabel='Theta Dot Dot', show=False, title='Acceleration', line_color='red')
-            elif joint_type.upper() == 'D1':
-                traj_plot = sy.plot(traj, (t, 0, t_f), ylabel='D1 (Degrees)', show=False, title='Position', line_color='blue')
-                vel_plot = sy.plot(vel, (t, 0, t_f), ylabel='D1 Dot', show=False, title='Velocity', line_color='green')
-                acc_plot = sy.plot(acc, (t, 0, t_f), ylabel='D1 Dot Dot', show=False, title='Acceleration', line_color='red')
-            elif joint_type.upper() == "D2":
-                traj_plot = sy.plot(traj, (t, 0, t_f), ylabel='D2 (Degrees)', show=False, title='Position', line_color='blue')
-                vel_plot = sy.plot(vel, (t, 0, t_f), ylabel='D2 Dot', show=False, title='Velocity', line_color='green')
-                acc_plot = sy.plot(acc, (t, 0, t_f), ylabel='D2 Dot Dot', show=False, title='Acceleration', line_color='red')
-            
-            return traj_plot, vel_plot, acc_plot
-        
-        def display_cubic_polynomials(self, revolute_plots, d1_plots, d2_plots):
-            '''
-            Method to plot the differnt revolute, d1, and d2, polynomial trajectories
-            
-            :param revolute_plot: List of Sympy.plot objects of revolute Position, Velocity and Acceeleration plots
-            :type revolute_plot: List[sy.Plot]
-            :param d1_plot: List of Sympy.plot objects of prismatic Position, Velocity and Acceeleration plots
-            :type d1_plot: List[sy.Plot]
-            :param d2_plot: List of Sympy.plot objects of prismatic Position, Velocity and Acceeleration plots
-            :type d2_plot: List[sy.Plot]
-            '''
-            sy.plotting.PlotGrid(3, 3, revolute_plots[0], d1_plots[0], d2_plots[0], revolute_plots[1], d1_plots[1], d2_plots[1], revolute_plots[2], d1_plots[2], d2_plots[2])
 
-            
