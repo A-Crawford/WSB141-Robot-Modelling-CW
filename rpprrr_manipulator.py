@@ -9,6 +9,7 @@ from spatialmath import SE3
 import sympy as sy
 import pandas as pd
 import roboticstoolbox as rbt
+import matplotlib.pyplot as plt
 
 class RPPRRRManipulator(DHRobot):
     """
@@ -966,8 +967,70 @@ class RPPRRRManipulator(DHRobot):
             sy.plotting.PlotGrid(3, 3, revolute_plots[0], d1_plots[0], d2_plots[0], revolute_plots[1], d1_plots[1], d2_plots[1], revolute_plots[2], d1_plots[2], d2_plots[2])
             
         def display_all_polynomial_plots(self, revolute_cubic, revolute_quintic, d1_cubic, d1_quintic, d2_cubic, d2_quintic):
+            '''
+            Method to plot all revolute, d1, and d1 polynomial trajectories of both cubic and quintic solutions
+            
+            :param revolute_cubic: List of Sympy.plot objects of revolute Position, Velocity and Acceeleration plots
+            :type revolute_cubic: List[sy.Plot]
+            :param revolute_quintic: List of Sympy.plot objcects of revolute Position, Velocity and Acceeleration plots
+            :type revolute_quintic: List[sy.plot]
+            :param d1_cubic: List of Sympy.plot objects of prismatic Position, Velocity and Acceeleration plots
+            :type d1_cubic: List[sy.Plot]
+            :param d1_quintic: List of Sympy.plot objects of pristmatic Position, Velocity, and Acceleration plot
+            :type d1_quintic: List[sy.plot]
+            :param d2_cubic: List of Sympy.plot objects of prismatic Position, Velocity and Acceeleration plots
+            :type d2_cubic: List[sy.Plot]
+            :param d2_quintic: List of Sympy.plot objects of prismtatic Position, Velcoity and ACceleration plots
+            :type d2_quintic: List[sy.plot]
+            '''
             sy.plotting.PlotGrid(3, 6, revolute_cubic[0], revolute_quintic[0], d1_cubic[0], d1_quintic[0], d2_cubic[0], d2_quintic[0], revolute_cubic[1], revolute_quintic[1], d1_cubic[1], d1_quintic[1], d2_cubic[1], d2_quintic[1], revolute_cubic[2], revolute_quintic[2], d1_cubic[2], d1_quintic[2], d2_cubic[2], d2_quintic[2])
         
+        def calculate_polynomials_via_point(self, theta_s, theta_v, theta_f, d_s, d_v, d_f, t_r, acc=50):
+            # First Segment
+            td_12 = 2.0
+            theta1_2dot = acc
+            t_1 = td_12 - np.sqrt(np.power(td_12, 2) - ((2 * (theta_v - theta_s)) / theta1_2dot))
+            theta12_dot = (theta_v - theta_s) / (td_12 - (1/2 * t_1))
+            
+            # Second (Last) segment
+            td_23 = 2.0
+            theta3_2dot = acc
+            t_3 = td_23 - np.sqrt(np.power(td_23, 2) + ((2 * (theta_f - theta_v)) / theta3_2dot))
+            theta23_dot = (theta_f - theta_v) / (td_23 - (1/2 * t_3))
+            
+            # Between segment
+            t_2 = (theta23_dot - theta12_dot) / theta_v
+            
+            # Linear Times
+            t_12 = td_12 - t_1 - (1/2 * t_2)
+            t_23 = td_23 - t_2 - (1/2 * t_3)
+            
+            a_0 = theta_s
+            a_1 = 0
+            a_2 = (3 / np.power(t_12, 2)) * (theta_v - theta_s)
+            a_3 = (-2 /np.power(t_12, 3)) * (theta_v - theta_s)
+            t = sy.Symbol('t')
+            traj = a_0 + (a_1 * t) + (a_2 * np.power(t, 2)) + (a_3 * np.power(t, 3))
+            vel = sy.diff(traj, t)
+            acc = sy.diff(vel, t)
+            traj_plot_1 = sy.plot(traj, (t, 0, t_12), ylabel='Theta (Degrees)', show=False, title='Position', line_color='blue')
+            vel_plot_1 = sy.plot(vel, (t, 0, t_12), ylabel='Theta Dot', show=False, title='Velocity', line_color='green')
+            acc_plot_1 = sy.plot(acc, (t, 0, t_12), ylabel='Theta Dot Dot', show=False, title='Acceleration', line_color='red')
+            
+            a_0 = theta_v
+            a_1 = 0
+            a_2 = (3 / np.power(t_23, 2)) * (theta_f - theta_v)
+            a_3 = (-2 /np.power(t_23, 3)) * (theta_f - theta_v)
+            t = sy.Symbol('t')
+            traj = a_0 + (a_1 * t) + (a_2 * np.power(t, 2)) + (a_3 * np.power(t, 3))
+            vel = sy.diff(traj, t)
+            acc = sy.diff(vel, t)
+            traj_plot_2 = sy.plot(traj, (t, 0, t_23), ylabel='Theta (Degrees)', show=False, title='Position', line_color='blue')
+            vel_plot_2 = sy.plot(vel, (t, 0, t_23), ylabel='Theta Dot', show=False, title='Velocity', line_color='green')
+            acc_plot_2 = sy.plot(acc, (t, 0, t_23), ylabel='Theta Dot Dot', show=False, title='Acceleration', line_color='red')
+
+            # sy.plotting.PlotGrid(3, 2, traj_plot_1, traj_plot_2, vel_plot_1, vel_plot_2, acc_plot_1, acc_plot_2)s
+            
         def __create_dot_dataframe(self): #private method
             '''
             Private method to create dataframe for visulisation of acc/vel calcs

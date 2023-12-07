@@ -124,4 +124,6 @@ if __name__ == "__main__":
     
     # sympy_manipulator.display_all_polynomial_plots(revolute_plots_cubic, revolute_plots_quintic, d1_plots_cubic, d1_plots_quintic, d2_plots_cubic, d2_plots_quintic)
     
-    # manipulator.generate_trapezoida_velocity(theta_s=100, theta_f=20, t_r=4)
+    # # TODO add explanation of graphs, discussion of results and a 'legend'
+    
+    sympy_manipulator.calculate_polynomials_via_point(theta_s=100, theta_v=60, theta_f=20, d_s=0.05, d_v=0.075, d_f=0.10, t_r=10, acc=50)
