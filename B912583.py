@@ -454,6 +454,56 @@ class RPPRRRManipulator(DHRobot):
     class RPPRRRManipulatorSympy():
         '''
         Sub-Class of RPPRRRManipulator Class which utilises Sympy library to expand capabilities of RPPRRRManipulator class
+        
+        Attributes:
+            L0: Sympy L0 symbol
+            L1: Sympy L1 symbol
+            L2: Sympy L2 symbol
+            L3: Sympy L3 symbol
+            L4: Sympy L4 symbol
+            L5: Sympy L5 symbol
+            
+            THETA1: Sympy THETA1 symbol
+            TEHTA4: Sympy THETA4 symbol
+            TEHTA5: Sympy THETA5 symbol
+            TEHTA6: Sympy THETA6 symbol
+            
+            D2: Sympy D2 symbol
+            D3: Sympy D3 symbol
+            
+            DH_TABLE: Sympy matrix of DH Table values as specified in coursework breif
+            
+            TB_1, T1_2, T2_3, T3_4, T4_5, T5_6, T6_T, T_T: Sympy Matrix of each transfrom of each frame
+            TB_T: Sympy Matrix transfrom from base to tool frame
+            T1_6: Sympy matrix transform from joint 1 to 6
+            TB_T_FK: Substituted values, solved, transform for forward kinematics
+            
+            PCB_B, TC1_1, PC2_2, PC3_3, PC4_4, PC5_5, PC6_6 = Numpy array vectors of centre of mass values
+            LINK_MASSES = Numpy array of all ink masses
+            M0, M1, M2, M3, M4, M5, M6, M7 = Masses of each link
+            
+            I_CB_B, I_C1_1, I_C2_2, I_C3_3, I_C4_4, I_C5_5, I_C6_6: Numpy array for each link inertia tensor
+            
+            EMREGANCY_STOP_POSE: List of joint values at time of emergancy stop
+            E_STOP_JOINT_VELOCITIES: Joint velocities at time of emergancy stop
+            
+            thetaB_i_dot, theta1_i_dot, d2_i_dot, d3_i_dot, theta4_i_dot, theta5_i_dot, theta6_i_dot: Velocities of each joint at emergancy stop
+            
+            T1_MAX_VEL, T2_MAX_VEL, T3_MAX_VEL, T4_MAX_VEL, T5_MAX_VEL, T6_MAX_VEL: +- maximum velocity of each joint
+            T1_MAX_TORQUE, T2_MAX_TORQUE, T3_MAX_TORQUE, T4_MAX_TORQUE, T5_MAX_TORQUE, T6_MAX_TORQUE: +- maximum torque of each joint
+            
+            MASS: mass applied to tool frame
+            G: Constant of gravity
+            
+            F6_6: Numpy array force vector for final frame
+            N6_6: Numpy array moment vector for final frame
+            
+            thetaB_i_2dot, theta1_i_2dot, d2_i_2dot, d3_i_2dot, theta4_i_2dot, theta5_i_2dot, theta6_i_2dot: Acceleration of each joint at emergancy stop
+            
+            omega_0_0: Numpy matrix vecloity acceleration vector
+            omega_dot_0_0: Numpy matrix angular acceleration vector
+            v_dot_0_0: Numpy matrix linear velocity vector
+        
         '''
         def __init__(self):
             # Delcare Symbols for DH table abd transformation, reassignment of previous variables now that they have been used in the initialisation of the RBT model
