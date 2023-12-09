@@ -1121,7 +1121,7 @@ class RPPRRRManipulator(DHRobot):
             :param d2_quintic: List of Sympy.plot objects of prismtatic Position, Velcoity and ACceleration plots
             '''
             
-            sy.plotting.PlotGrid(3, 6, revolute_cubic[0], revolute_quintic[0], d1_cubic[0], d1_quintic[0], d2_cubic[0], d2_quintic[0], revolute_cubic[1], revolute_quintic[1], d1_cubic[1], d1_quintic[1], d2_cubic[1], d2_quintic[1], revolute_cubic[2], revolute_quintic[2], d1_cubic[2], d1_quintic[2], d2_cubic[2], d2_quintic[2], revolute_cubic[3], revolute_quintic[3], d1_cubic[3], d1_quintic[3], d2_cubic[3], d2_quintic[3])
+            sy.plotting.PlotGrid(4, 6, revolute_cubic[0], revolute_quintic[0], d1_cubic[0], d1_quintic[0], d2_cubic[0], d2_quintic[0], revolute_cubic[1], revolute_quintic[1], d1_cubic[1], d1_quintic[1], d2_cubic[1], d2_quintic[1], revolute_cubic[2], revolute_quintic[2], d1_cubic[2], d1_quintic[2], d2_cubic[2], d2_quintic[2], revolute_cubic[3], revolute_quintic[3], d1_cubic[3], d1_quintic[3], d2_cubic[3], d2_quintic[3])
         
         def calculate_polynomials_via_point(self, theta_1: float, theta_2: float, theta_3: float, acc=50, joint_type='revolute'):
             '''
@@ -1420,9 +1420,18 @@ if __name__ == "__main__":
     print('Displaying plot for Revolute, D1, and D2 quintic soltuions to Position, Velocity and Acceleration')
     sympy_manipulator.display_polynomials(revolute_plots_quintic, d1_plots_quintic, d2_plots_quintic)
     
-    # sympy_manipulator.display_all_polynomial_plots(revolute_plots_cubic, revolute_plots_quintic, d1_plots_cubic, d1_plots_quintic, d2_plots_cubic, d2_plots_quintic)
+    print('Disaplying Cubic and Quantic plots side by side.')
+    print('Legend')
+    print('Cubic Velocity: Blue\nCubic Velocity: Green\nCubic Acceleration: Red\nCubic Angular Jerk: Yellow')
+    print('Quintic Velocity: Dodger Blue\nQuintic Velocity: Magenta\nQuintic Acceleration: Dark Violet\nQuintic Angular Jerk: Orange')
+    sympy_manipulator.display_all_polynomial_plots(revolute_plots_cubic, revolute_plots_quintic, d1_plots_cubic, d1_plots_quintic, d2_plots_cubic, d2_plots_quintic)
     
     # # TODO add explanation of graphs, discussion of results and a 'legend'
     
-    # sympy_manipulator.calculate_polynomials_via_point(theta_1=100, theta_2=60, theta_3=20, acc=50)
-    # sympy_manipulator.calculate_polynomials_via_point(theta_1=0.05, theta_2=0.075, theta_3=0.10, acc=50, joint_type='PRISMATIC')
+    print('\n\n\n\n Displaying plot for two cubic polynomials with via point, where the starting theta is 100, via point is 50 and final theta is 20:\n')
+    sympy_manipulator.calculate_polynomials_via_point(theta_1=100, theta_2=60, theta_3=20, acc=50)
+    
+    print('\n\nDisplayingplot for two cubic polynomials with via point, where the starting d is 0.05, via point is 0.075 and final d is 0.10:\n')
+    sympy_manipulator.calculate_polynomials_via_point(theta_1=0.05, theta_2=0.075, theta_3=0.10, acc=50, joint_type='PRISMATIC')
+    
+    
