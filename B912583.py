@@ -88,6 +88,7 @@ class RPPRRRManipulator(DHRobot):
         Defines predetermined values specified in 23WSB141 Coursework Brief
         
         '''
+        
         # Define Parameters in DH Table and specified in FK 'actual dimensions'
         self.L0 = 0.10
         self.L1 = 0.20
@@ -267,6 +268,7 @@ class RPPRRRManipulator(DHRobot):
         :param transform: Transformation matrix for the inverse kinematic solution to be found
         :type ndarray: Numpy ndarray
         '''
+        
         index = 1
         ik_sol_1 = self.inverse_kinematics(transform, display=True)
         if self.__compare_len(ik_sol_1[0], ik_sol_1[1]):
@@ -351,6 +353,7 @@ class RPPRRRManipulator(DHRobot):
         :return torques: caculated torque values for each joint
         :type torques: list
         '''
+        
         #Type cheeck transform
         self.__transform_type_check(transform)
         
@@ -448,6 +451,7 @@ class RPPRRRManipulator(DHRobot):
         :return bool: True if list 1 is greater than list 2
         :type Bool
         '''
+        
         return len(list1) > len(list2)
     
 
@@ -505,6 +509,7 @@ class RPPRRRManipulator(DHRobot):
             v_dot_0_0: Numpy matrix linear velocity vector
         
         '''
+        
         def __init__(self):
             # Delcare Symbols for DH table abd transformation, reassignment of previous variables now that they have been used in the initialisation of the RBT model
             self.L0 = sy.symbols('L0')
@@ -776,6 +781,7 @@ class RPPRRRManipulator(DHRobot):
             :return omega_new, omega_dot_new, v_dot_new, v_centre_dot_new, F_new, N_new: Return the calculated Velcoties and Accelerations for the specified joint as well as the Moment and Forces
             :return type: tuple<Matrix>
             '''
+            
             rotation = transform[:3, :3]
             position = transform[:3, 3]
             
@@ -824,6 +830,7 @@ class RPPRRRManipulator(DHRobot):
             :return omega_new, omega_dot_new, v_dot_new, v_centre_dot_new, F_new, N_new: Return the calculated Velcoties and Accelerations for the specified joint as well as the Moment and Forces
             :return type: tuple<Matrix>
             '''
+            
             rotation = transform[:3, :3]
             position = transform[:3, 3]
             
@@ -866,6 +873,7 @@ class RPPRRRManipulator(DHRobot):
             :return link_force, link_torque, tau: Returns calculated values of link force and torque as well as Tau - the Joint Torque
             :return type: tuple<Matrix>
             '''
+            
             rotation = transform[:3, :3]
             position = transform[:3, 3]
             
@@ -885,6 +893,7 @@ class RPPRRRManipulator(DHRobot):
             :return omega_values, omega_dot_values, v_dot_values, v_centre_dot_values, F_values, N_values
             :return type: tuple<list<matrix<float>>>
             '''
+            
             #Iterate outwards from base to end effector
             #Base
             omega_0_0, omega_dot_0_0, v_dot_0_0, v_centre_dot_0_0, F_0_0, N_0_0 = self.acc_revolute(transform=self.TB_1, omega=self.omega_0_0, theta_i_dot=self.thetaB_i_dot, omega_dot=self.omega_dot_0_0, theta_i_2dot=self.thetaB_2dot, v_dot=self.v_dot_0_0, PC=self.PCB_B, mass=self.M0, i=self.I_CB_B) 
@@ -927,6 +936,7 @@ class RPPRRRManipulator(DHRobot):
             :Param N: Moment values calculaed in 'calc_vel_acc'
             :type N: List<Matrix>
             '''
+            
             # Iterate from end effector to base
             self.NT_T = np.array([[0], [0], [0]]) # No intial moment
             self.FT_T = np.array([[0], [-self.MASS*self.G], [0]]) # Froces of gravity
@@ -971,6 +981,7 @@ class RPPRRRManipulator(DHRobot):
             Method to iterate through all equations and display the pure, unsubstituted equations
             
             '''
+            
             print('Outward iteration from base to end effector')
             print('Displaying Omega, Omega_Dot, V_dot, V_centre_dot, Force and Moment for each link...\n\n\n\n')
             for x in range(0, 5):
@@ -999,6 +1010,7 @@ class RPPRRRManipulator(DHRobot):
             :param t_f: Time to move in Seconds
             :type t_f: float
             '''
+            
             a_0 = theta_0
             a_1 = 0
             a_2 = (3 / np.power(t_f, 2)) * (theta_f - theta_0)
@@ -1010,6 +1022,7 @@ class RPPRRRManipulator(DHRobot):
             '''
             Calculate quintic polynomial
             '''
+            
             t = sy.Symbol('t')
             theta_0_dot = sy.diff(theta_0, t)
             theta_f_dot = sy.diff(theta_f, t)
@@ -1046,7 +1059,8 @@ class RPPRRRManipulator(DHRobot):
             :return acc_plot: Joint Acceleration plot
             :type acc_plot: sy.Plot
             '''
-            line_color = [['blue', 'green', 'red'], ['dodgerblue', 'magenta', 'darkviolet']]
+            
+            line_color = [['blue', 'green', 'red', 'yellow'], ['dodgerblue', 'magenta', 'darkviolet', 'orange']]
             index = 0
             t = sy.Symbol('t')
             if order == 5:
@@ -1056,21 +1070,25 @@ class RPPRRRManipulator(DHRobot):
                 traj = coeff[0] + (coeff[1] * t) + (coeff[2] * np.power(t, 2)) + (coeff[3] * np.power(t, 3))
             vel = sy.diff(traj, t)
             acc = sy.diff(vel, t)
+            jerk = sy.diff(acc, t)
             
             if joint_type.upper() == 'REVOLUTE':
                 traj_plot = sy.plot(traj, (t, 0, t_f), ylabel='Theta (Degrees)', show=False, title='Position', line_color=line_color[index][0])
                 vel_plot = sy.plot(vel, (t, 0, t_f), ylabel='Theta Dot', show=False, title='Velocity', line_color=line_color[index][1])
                 acc_plot = sy.plot(acc, (t, 0, t_f), ylabel='Theta Dot Dot', show=False, title='Acceleration', line_color=line_color[index][2])
+                jerk_plot = sy.plot(jerk, (t, 0, t_f), ylabel='Theta Dot Dot Dot', show=False, title='Angular Jerk', line_color=line_color[index][3])
             elif joint_type.upper() == 'D1':
                 traj_plot = sy.plot(traj, (t, 0, t_f), ylabel='D1 (Degrees)', show=False, title='Position', line_color=line_color[index][0])
                 vel_plot = sy.plot(vel, (t, 0, t_f), ylabel='D1 Dot', show=False, title='Velocity', line_color=line_color[index][1])
                 acc_plot = sy.plot(acc, (t, 0, t_f), ylabel='D1 Dot Dot', show=False, title='Acceleration', line_color=line_color[index][2])
+                jerk_plot = sy.plot(jerk, (t, 0, t_f), ylabel='D1 Dot Dot Dot', show=False, title='Angular Jerk', line_color=line_color[index][3])
             elif joint_type.upper() == "D2":
                 traj_plot = sy.plot(traj, (t, 0, t_f), ylabel='D2 (Degrees)', show=False, title='Position', line_color=line_color[index][0])
                 vel_plot = sy.plot(vel, (t, 0, t_f), ylabel='D2 Dot', show=False, title='Velocity', line_color=line_color[index][1])
                 acc_plot = sy.plot(acc, (t, 0, t_f), ylabel='D2 Dot Dot', show=False, title='Acceleration', line_color=line_color[index][2])
+                jerk_plot = sy.plot(jerk, (t, 0, t_f), ylabel='D2Dot Dot Dot', show=False, title='Angular Jerk', line_color=line_color[index][3])
             
-            return traj_plot, vel_plot, acc_plot
+            return traj_plot, vel_plot, acc_plot, jerk_plot
         
         def display_polynomials(self, revolute_plots, d1_plots, d2_plots):
             '''
@@ -1083,7 +1101,8 @@ class RPPRRRManipulator(DHRobot):
             :param d2_plot: List of Sympy.plot objects of prismatic Position, Velocity and Acceeleration plots
             :type d2_plot: List[sy.Plot]
             '''
-            sy.plotting.PlotGrid(3, 3, revolute_plots[0], d1_plots[0], d2_plots[0], revolute_plots[1], d1_plots[1], d2_plots[1], revolute_plots[2], d1_plots[2], d2_plots[2])
+            
+            sy.plotting.PlotGrid(4, 3, revolute_plots[0], d1_plots[0], d2_plots[0], revolute_plots[1], d1_plots[1], d2_plots[1], revolute_plots[2], d1_plots[2], d2_plots[2], revolute_plots[3], d1_plots[3], d2_plots[3])
             
         def display_all_polynomial_plots(self, revolute_cubic, revolute_quintic, d1_cubic, d1_quintic, d2_cubic, d2_quintic):
             '''
@@ -1100,11 +1119,11 @@ class RPPRRRManipulator(DHRobot):
             :param d2_cubic: List of Sympy.plot objects of prismatic Position, Velocity and Acceeleration plots
             :type d2_cubic: List[sy.Plot]
             :param d2_quintic: List of Sympy.plot objects of prismtatic Position, Velcoity and ACceleration plots
-            :type d2_quintic: List[sy.plot]
             '''
-            sy.plotting.PlotGrid(3, 6, revolute_cubic[0], revolute_quintic[0], d1_cubic[0], d1_quintic[0], d2_cubic[0], d2_quintic[0], revolute_cubic[1], revolute_quintic[1], d1_cubic[1], d1_quintic[1], d2_cubic[1], d2_quintic[1], revolute_cubic[2], revolute_quintic[2], d1_cubic[2], d1_quintic[2], d2_cubic[2], d2_quintic[2])
+            
+            sy.plotting.PlotGrid(3, 6, revolute_cubic[0], revolute_quintic[0], d1_cubic[0], d1_quintic[0], d2_cubic[0], d2_quintic[0], revolute_cubic[1], revolute_quintic[1], d1_cubic[1], d1_quintic[1], d2_cubic[1], d2_quintic[1], revolute_cubic[2], revolute_quintic[2], d1_cubic[2], d1_quintic[2], d2_cubic[2], d2_quintic[2], revolute_cubic[3], revolute_quintic[3], d1_cubic[3], d1_quintic[3], d2_cubic[3], d2_quintic[3])
         
-        def calculate_polynomials_via_point(self, theta_1: float, theta_2: float, theta_3: float, acc=50):
+        def calculate_polynomials_via_point(self, theta_1: float, theta_2: float, theta_3: float, acc=50, joint_type='revolute'):
             '''
             Given a starting, via, and final point will calculate and plot the position, velcoity and acceleration graph as a function of time
             
@@ -1161,9 +1180,8 @@ class RPPRRRManipulator(DHRobot):
                 else:
 
                     theta = np.append(theta, t)
-
-                    
-            self.__generate_plot(time, theta, theta_dot, theta_dot_dot)
+        
+            self.__generate_plot(time, theta, theta_dot, theta_dot_dot, joint_type=joint_type)
             
         
         def __sign(self, val1: float, val2: float) -> int:
@@ -1172,14 +1190,35 @@ class RPPRRRManipulator(DHRobot):
             '''
             return -1 if val1 - val2 < 0 else 1
                 
-        def __generate_plot(self, time: list, theta: list, theta_dot: list, theta_dot_dot: list):
+        def __generate_plot(self, time: list, theta: list, theta_dot: list, theta_dot_dot: list, joint_type: str):
             '''
             Private function to generate plots for Position, Velocity and Acceleration
             '''
             fig, axs = plt.subplots(3)
             axs[0].plot(time, theta)
+            axs[0].set_title('Position')
             axs[1].plot(time, theta_dot)
+            axs[1].set_title('Velocity')
             axs[2].plot(time, theta_dot_dot)
+            axs[2].set_title('Acceleration')
+            
+            ylbl1 = 'Theta'
+            ylbl2 = 'Theta Dot'
+            ylbl3 = 'Theta Dot Dot'
+            fig.suptitle('Positon, Velocity and Acceleration of Revolute Joints')
+            if joint_type.upper() == 'PRISMATIC':
+                ylbl1 = 'D'
+                ylbl2 = 'D Dot'
+                ylbl3 = 'D Dot Dot'
+                fig.suptitle('Positon, Velocity and Acceleration of Revolute Joints')
+            
+            axs[0].set(ylabel=ylbl1)
+            axs[1].set(ylabel=ylbl2)
+            axs[2].set(ylabel=ylbl3)
+            
+            for ax in axs.flat:
+                ax.set(xlabel='t')
+            
             fig.show()
             plt.show()
                         
@@ -1260,56 +1299,87 @@ if __name__ == "__main__":
     #TODO add statemnts tracking where you are in the code, the part of the coursework being asseseed and explainign the values presented for the manipualtor dynamics
 
     #Intialise instances of classes for both RBT and Sympy Solutions
+    print('Initialising instaces of RPPRRR class...')
     manipulator = RPPRRRManipulator()
     sympy_manipulator = RPPRRRManipulator.RPPRRRManipulatorSympy()
     
     #Print instance of manipulator to check DH and Qlim Values
     print(manipulator)
     
+    
+    
     #STEP 1: Forward Kinematics (FK)
     #Calcualte forward kinematic solution using the joint angles specified in 'Step 1: Forward Kinematics (FK)'
     # Robotics Toolbox solution
+    print('Step 1: Forward Kinematics (FK).\nCalculating forward kinematics from the joint angles provided using the Robotics Toolbox model.\n')
     manipulator_fk = manipulator.forward_kinematics(STEP1_FK_JOINT_ANGLES)
     
     # Sympy Solution - Calculated within the initialisation of the class
+    print('Calculating forward kinematics using the sympy solution.\n')
     sympy_manipulator_fk = np.round(np.array(sympy_manipulator.TB_T_FK).astype(np.float64), 2)
     
+    # Print both RBT and Sympy solutions
     print(f"RBT FK Solution:\n {manipulator_fk}\nSympy FK Solution:\n {sympy_manipulator_fk}\n") #Display solutions to the user
     
     #Calulate inverse kinematic solution using the forward kinematic transform to test error
     #Robotics Toolbox Solution
-    manipulator_ik, invalid_ik = manipulator.inverse_kinematics(manipulator_fk)
-    rbt_fk_ik_error = manipulator.ik_error(manipulator_fk, manipulator_ik[0])
+    print('\nCalculating inverse kinematics of RBT forward kinematic solution to test error')
+    manipulator_ik = manipulator.ikine_LM(manipulator_fk)
+    rbt_fk_ik_error = manipulator.ik_error(manipulator_fk, manipulator_ik)
     
     # Sympy solution, compared to RBT Solution
+    print('\nCalculating inverse kinematics of sympy solution to test error')
     sympy_joint_angles = manipulator.ikine_LM(np.array(sympy_manipulator.TB_T_FK).astype(np.float64))
     sympy_fk_ik_error = manipulator.ik_error(manipulator_fk, sympy_joint_angles)
     
+    #Display difference in errors to the user
     print(f'\nRBT IK Error: {rbt_fk_ik_error}\nSympy FK Error: {sympy_fk_ik_error}')
+
+
+
 
     # STEP 2: Inverse Kinematics (IK)
     # Now that we have confirmed a very small error in our IK we can use it to solve the transforms specified in 'Step 2: Inverse Kinematics (IK)'
     # Solve each transform specified in the breif. Q limits applied to manipualtor at initialisation
+    print('\n\n\n\nStep 2: Inverse Kinematics (IK)\nCalculating inverse kinematics of a variety of transformation specified Step 2')
+    print('Using a method to handle all aspects of each transform.\nFor each transform, will calculate all possinle inverse solutions, display them and the solution with the lowest error, and plot joint angles.')
     best_sol_1, error_1 = manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_1)
     best_sol_2, error_2 = manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_2)
     best_sol_3, error_3 = manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_3)
     
+    
+    
+    
+    
     #STEP 3: Velocity and Static Force
     #Calculate Jacobian, Velocities and Static Forces, print the Linear and Angular velocities respetively
+    print('\n\n\n\nStep 3: Velocities and Static Forces (of the manipulator)')
+    print('Calculating the jacobian, linear velocities and angular velcoties for the following joint angles and velocities:\n')
+    print(f'Joint Angles:\n{STEP3_JOINT_ANGLES}\nJoint Velocities:\n{STEP3_JOINT_VELOCITIES}\n')
     jacobian, linear_velocities, angular_velocities = manipulator.joint_velocities(joint_angles = STEP3_JOINT_ANGLES, joint_velocities=STEP3_JOINT_VELOCITIES)
     print('\nJacobian Operator: \n', jacobian)
-    print(f'\nFor the the given joint velocities: {STEP3_JOINT_VELOCITIES}, the resultant velocities on the tool frame are as follows:')
-    print("Linear Velocities [X, Y, Z]:", linear_velocities)
-    print("Angular Velocities [X, Y, Z]:",angular_velocities)
+    print(f'\n\nFor the the given joint velocities: {STEP3_JOINT_VELOCITIES}, the resultant velocities on the tool frame are as follows:\n')
+    print("Linear Velocities [X, Y, Z]:\n", linear_velocities)
+    print("Angular Velocities [X, Y, Z]:\n",angular_velocities)
     
     #Find the torque acting on each joint wuith a point mass of 0.2kg at the tool frame, at the specific transform
+    print('\nCalculating the joint torque acting on each joint if a point mass of 0.2 is acting on a manipulator with the transform:\n', STEP3_STATIC_FORCE_TRANSFORM)
+    print('\nCaclculating the joint angles required for the specified transform using inverse kinematics:\n')
     joint_torques = manipulator.static_torques(mass=0.2, g=9.8, transform=STEP3_STATIC_FORCE_TRANSFORM)
-    print('Joint torques: ', joint_torques)
+    print('\nJoint torques: ', joint_torques)
+    
+    
+    
+    
     
     #Step 4: Manipulator Dynamics
-    if input('\n\n\n\n\nDisplay all unfiltered equations? Y/N ').upper() == 'Y':
+    print('\nCalculate the required torques in each joint to bring the manipualtor to an emergancy stop.')
+    print('\nThe manipulator is specified to be carrying a load of 0.2KG and is in the following pose:\n', sympy_manipulator.EMERGANCY_STOP_POSE)
+    print('\nThe manipuattor is specified to be moving at the following joint velocities at the time of the emergancy stop:\n', sympy_manipulator.E_STOP_JOINT_VELOCITIES)
+    print('\nCalculating equations for manipulator dynmaics...')
+    if input('\n\n\n\nDisplay all unsubsituted equations? Y/N ').upper() == 'Y':
         sympy_manipulator.display_all_equations()
-    if input('\n\n\n\nDisplay table of values for manipulator dynamics? Y/N').upper() == 'Y':
+    if input('\n\n\n\nDisplay table of values for manipulator dynamics? Y/N ').upper() == 'Y':
         print('Table of Dynmaics values for each Link:\n')
         print(sympy_manipulator.dynamics_table)
         
@@ -1317,24 +1387,42 @@ if __name__ == "__main__":
         print(sympy_manipulator.totals_table)
         print('\n Base Joint Torque should be 0 as the base is not a joint')
     
+    
+    
+    
+    
+    # Step 5: Trajectory Generation
+    # Calculate cubic coefficents for both Revolute and Prismatic joint
+    print('Calculating cubic polynomial coeffiecients for both Revolute and D1, D2 Prismatic joint...')
     revolute_cubic = sympy_manipulator.cubic_polynomial_TG(theta_0=100, theta_f=20, t_f=1)
     d1_cubic = sympy_manipulator.cubic_polynomial_TG(theta_0=0.1, theta_f=0.5, t_f=1)
     d2_cubic = sympy_manipulator.cubic_polynomial_TG(theta_0=0.05, theta_f=0.1, t_f=1)
+    print(f'Coeffecients for revolute:\n {revolute_cubic}\nd1 prismatic:\n{d1_cubic}\nd2 prismatic:\n{d2_cubic}')
+    
+    print('Generating plots for Positon, Velocitiy, and Acceleration of each joint\n')
     revolute_plots_cubic = sympy_manipulator.generate_polynomial_plot(revolute_cubic, 1, joint_type='revolute')
     d1_plots_cubic = sympy_manipulator.generate_polynomial_plot(d1_cubic, 1, joint_type='d1')
     d2_plots_cubic = sympy_manipulator.generate_polynomial_plot(d2_cubic, 1, joint_type='d2')
-    # sympy_manipulator.display_polynomials(revolute_plots_cubic, d1_plots_cubic, d2_plots_cubic)
+    print('Displaying plot for Revolute, D1, and D2 Cubic soltuions to Position, Velocity and Acceleration')
+    sympy_manipulator.display_polynomials(revolute_plots_cubic, d1_plots_cubic, d2_plots_cubic)
 
+    # Calculate quintic coefficents for both Revolute and Pristmatic joints
+    print('Calculating quintic polynomial coeffiecients for both Revolute and D1, D2 Prismatic joint...')
     revolute_quintic = sympy_manipulator.quintic_polynomial_TG(theta_0=100, theta_f=20, t_f=1)
     d1_quintic = sympy_manipulator.quintic_polynomial_TG(theta_0=0.1, theta_f=0.5, t_f=1)
     d2_quintic = sympy_manipulator.quintic_polynomial_TG(theta_0=0.05, theta_f=0.1, t_f=1)
+    print(f'Coeffecients for revolute:\n {revolute_quintic}\nd1 prismatic:\n{d1_quintic}\nd2 prismatic:\n{d2_quintic}')
+    
+    print('Generating plots for Positon, Velocitiy, and Acceleration of each joint\n')
     revolute_plots_quintic = sympy_manipulator.generate_polynomial_plot(revolute_quintic, 1, joint_type='revolute', order=5)
     d1_plots_quintic = sympy_manipulator.generate_polynomial_plot(d1_quintic, 1, joint_type='d1', order=5)
     d2_plots_quintic = sympy_manipulator.generate_polynomial_plot(d2_quintic, 1, joint_type='d2', order=5)
-    # sympy_manipulator.display_polynomials(revolute_plots_quintic, d1_plots_quintic, d2_plots_quintic)
+    print('Displaying plot for Revolute, D1, and D2 quintic soltuions to Position, Velocity and Acceleration')
+    sympy_manipulator.display_polynomials(revolute_plots_quintic, d1_plots_quintic, d2_plots_quintic)
     
-    sympy_manipulator.display_all_polynomial_plots(revolute_plots_cubic, revolute_plots_quintic, d1_plots_cubic, d1_plots_quintic, d2_plots_cubic, d2_plots_quintic)
+    # sympy_manipulator.display_all_polynomial_plots(revolute_plots_cubic, revolute_plots_quintic, d1_plots_cubic, d1_plots_quintic, d2_plots_cubic, d2_plots_quintic)
     
-    # TODO add explanation of graphs, discussion of results and a 'legend'
+    # # TODO add explanation of graphs, discussion of results and a 'legend'
     
-    sympy_manipulator.calculate_polynomials_via_point(theta_1=100, theta_2=60, theta_3=20, acc=50)
+    # sympy_manipulator.calculate_polynomials_via_point(theta_1=100, theta_2=60, theta_3=20, acc=50)
+    # sympy_manipulator.calculate_polynomials_via_point(theta_1=0.05, theta_2=0.075, theta_3=0.10, acc=50, joint_type='PRISMATIC')
