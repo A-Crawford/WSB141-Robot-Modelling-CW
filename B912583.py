@@ -13,8 +13,6 @@ import numpy as np
 import sympy as sy
 import pandas as pd
 
-from rpprrr_manipulator import RPPRRRManipulator
-
 STEP1_FK_JOINT_ANGLES = [0, 0.5, 0, 0, 0, 0]
 
 STEP2_IK_TRANSFORM_1 = np.array(
@@ -62,9 +60,34 @@ class RPPRRRManipulator(DHRobot):
     Class to model and interact with RPPRRR Manipulator as defined in 23WSB141 - Introduction To Robotics Coursework
     
     Inherits from the DHRobot class of the Robotics Toolbox for Python library.
+    
+    Attributes:
+            L0: L0 of Manipulator
+            L1: L1 of Mnaipulator
+            L2: L2 of Manipulator
+            L3: L3 of Manipulator
+            L4: L4 of Manipulator
+            L5: L5 of Mnaipulator
+            
+            THETA1: Init value of of manipulator theta 1
+            THETA4: Init value of manipulaotr theta 4
+            THETA5: Init value of manipulator theta 5
+            THETA6: Init value of manipulator theta 6
+            
+            D2: Init value of mnaipulator d2
+            D3: Init value of manipualtor d3
+            
+            DH_TABLE: Constant - DH table as specified in coursework brief
+            
+            links: List of RoboticsToolbox for Python Class instances for initalisation of DHRobot instace
     """
 
     def __init__(self):
+        '''
+        RPPRRR Manipulator constructor
+        Defines predetermined values specified in 23WSB141 Coursework Brief
+        
+        '''
         # Define Parameters in DH Table and specified in FK 'actual dimensions'
         self.L0 = 0.10
         self.L1 = 0.20
