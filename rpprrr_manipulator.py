@@ -161,7 +161,7 @@ class RPPRRRManipulator(DHRobot):
         
         self.__transform_type_check(transform)
         self.solutions = []
-        for x in range(0, 100):
+        for x in range(0, 16):
             ik = self.ikine_LM(transform)
             self.solutions.append(ik)
         
@@ -175,8 +175,8 @@ class RPPRRRManipulator(DHRobot):
                 invalid_solutions.append(x)
                 
         if len(valid_solutions) > len(invalid_solutions):          
-            if len(valid_solutions) > 99:
-                print("\nOver 99 Kinematic Solutions found.")
+            if len(valid_solutions) > 15:
+                print("\n16 Kinematic Solutions found.")
             else:
                 print(f"{len(valid_solutions)} Inverse Kinematic Solutions found.")
                     
@@ -985,52 +985,90 @@ class RPPRRRManipulator(DHRobot):
             '''
             sy.plotting.PlotGrid(3, 6, revolute_cubic[0], revolute_quintic[0], d1_cubic[0], d1_quintic[0], d2_cubic[0], d2_quintic[0], revolute_cubic[1], revolute_quintic[1], d1_cubic[1], d1_quintic[1], d2_cubic[1], d2_quintic[1], revolute_cubic[2], revolute_quintic[2], d1_cubic[2], d1_quintic[2], d2_cubic[2], d2_quintic[2])
         
-        def calculate_polynomials_via_point(self, theta_s, theta_v, theta_f, d_s, d_v, d_f, t_r, acc=50):
-            # First Segment
-            td_12 = 2.0
-            theta1_2dot = acc
-            t_1 = td_12 - np.sqrt(np.power(td_12, 2) - ((2 * (theta_v - theta_s)) / theta1_2dot))
-            theta12_dot = (theta_v - theta_s) / (td_12 - (1/2 * t_1))
+        def calculate_polynomials_via_point(self, theta_1: float, theta_2: float, theta_3: float, acc=50):
+            '''
+            Given a starting, via, and final point will calculate and plot the position, velcoity and acceleration graph as a function of time
             
-            # Second (Last) segment
-            td_23 = 2.0
-            theta3_2dot = acc
-            t_3 = td_23 - np.sqrt(np.power(td_23, 2) + ((2 * (theta_f - theta_v)) / theta3_2dot))
-            theta23_dot = (theta_f - theta_v) / (td_23 - (1/2 * t_3))
+            :param theta_1: starting theta value
+            :type theta_1: float
+            :param theta_2: Via point theta value
+            :type theta_2: float
+            :param theta_3: final theta value
+            :type theta_3: float
+            '''
+            td_12 = td_23 = 2
             
-            # Between segment
-            t_2 = (theta23_dot - theta12_dot) / theta_v
             
-            # Linear Times
-            t_12 = td_12 - t_1 - (1/2 * t_2)
-            t_23 = td_23 - t_2 - (1/2 * t_3)
+            theta1_2dot = self.__sign(theta_2, theta_1) * acc
+            t_1 = td_12 - np.sqrt(np.power(td_12 , 2) - (2 * ( theta_2 - theta_1)) / theta1_2dot)
+            theta12_dot = (theta_2 - theta_1) / (td_12 - (1/2 * t_1))
             
-            a_0 = theta_s
-            a_1 = 0
-            a_2 = (3 / np.power(t_12, 2)) * (theta_v - theta_s)
-            a_3 = (-2 /np.power(t_12, 3)) * (theta_v - theta_s)
-            t = sy.Symbol('t')
-            traj = a_0 + (a_1 * t) + (a_2 * np.power(t, 2)) + (a_3 * np.power(t, 3))
-            vel = sy.diff(traj, t)
-            acc = sy.diff(vel, t)
-            traj_plot_1 = sy.plot(traj, (t, 0, t_12), ylabel='Theta (Degrees)', show=False, title='Position', line_color='blue')
-            vel_plot_1 = sy.plot(vel, (t, 0, t_12), ylabel='Theta Dot', show=False, title='Velocity', line_color='green')
-            acc_plot_1 = sy.plot(acc, (t, 0, t_12), ylabel='Theta Dot Dot', show=False, title='Acceleration', line_color='red')
+            theta3_2dot = self.__sign(theta_2, theta_3) * acc
+            t_3 = td_23 - np.sqrt(np.power(td_23 , 2) + (2 * ( theta_3 - theta_2)) / theta3_2dot)
+            theta23_dot = (theta_3 - theta_2) / (td_23 - (1/2 * t_3))
             
-            a_0 = theta_v
-            a_1 = 0
-            a_2 = (3 / np.power(t_23, 2)) * (theta_f - theta_v)
-            a_3 = (-2 /np.power(t_23, 3)) * (theta_f - theta_v)
-            t = sy.Symbol('t')
-            traj = a_0 + (a_1 * t) + (a_2 * np.power(t, 2)) + (a_3 * np.power(t, 3))
-            vel = sy.diff(traj, t)
-            acc = sy.diff(vel, t)
-            traj_plot_2 = sy.plot(traj, (t, 0, t_23), ylabel='Theta (Degrees)', show=False, title='Position', line_color='blue')
-            vel_plot_2 = sy.plot(vel, (t, 0, t_23), ylabel='Theta Dot', show=False, title='Velocity', line_color='green')
-            acc_plot_2 = sy.plot(acc, (t, 0, t_23), ylabel='Theta Dot Dot', show=False, title='Acceleration', line_color='red')
+            theta2_2dot = self.__sign(theta23_dot, theta12_dot) * acc
+            t_2 = (theta23_dot - theta12_dot) / theta3_2dot
+            
+            #Linear time 
+            t_13 = (td_12 + td_23) - t_1 - (1/2 * t_3)
+            
+            print(theta1_2dot, t_1, theta12_dot)
+            print(theta3_2dot, t_3, theta23_dot)
+            print(theta2_2dot, t_2)
+            
+            
+            time = np.array([])
+            theta = np.array([])
+            theta_dot = np.array([])  
+            theta_dot_dot = np.array([])  
+            for t in np.arange(0, t_1 + t_13 + t_3, 0.001):
+                time = np.append(time, t)
+                if t <= t_1:
+                    
+                    t_inb = t - (1/2 * t_1 + t_13)
+                    theta = np.append(theta, ( theta_1 + (1/2 * theta12_dot * np.power(t, 2))))
+                    theta_dot = np.append(theta_dot, (theta12_dot + (theta3_2dot * t_inb)))
+                    theta_dot_dot = np.append(theta_dot_dot, theta1_2dot)
+                    
+                elif t > t_1 and t < t_1 + t_13:
+                    
+                    theta = np.append(theta, (theta_1 + (theta12_dot * t)))
+                    theta_dot = np.append(theta_dot, theta12_dot)
+                    theta_dot_dot = np.append(theta_dot_dot, 0)
+                    
+                elif t > t_1 + t_13 and t < t_1 + t_13 + t_3:
+                    
+                    t_inb = t - (1/2 * t_1 + t_13)
+                    theta = np.append(theta, ( theta_1 + theta12_dot * (1/2 * t_1 + t_13) + theta12_dot * t_inb + 1/2 * theta3_2dot * np.power(t_inb, 2)))
+                    theta_dot = np.append(theta_dot, (theta12_dot + (theta3_2dot * t_inb)))
+                    theta_dot_dot = np.append(theta_dot_dot, theta3_2dot)
+                    
+                else:
 
-            # sy.plotting.PlotGrid(3, 2, traj_plot_1, traj_plot_2, vel_plot_1, vel_plot_2, acc_plot_1, acc_plot_2)s
+                    theta = np.append(theta, t)
+
+                    
+            self.__generate_plot(time, theta, theta_dot, theta_dot_dot)
             
+        
+        def __sign(self, val1: float, val2: float) -> int:
+            '''
+            Private function to see if the difference between two values is positive or negative
+            '''
+            return -1 if val1 - val2 < 0 else 1
+                
+        def __generate_plot(self, time: list, theta: list, theta_dot: list, theta_dot_dot: list):
+            '''
+            Private function to generate plots for Position, Velocity and Acceleration
+            '''
+            fig, axs = plt.subplots(3)
+            axs[0].plot(time, theta)
+            axs[1].plot(time, theta_dot)
+            axs[2].plot(time, theta_dot_dot)
+            fig.show()
+            plt.show()
+                        
         def __create_dot_dataframe(self): #private method
             '''
             Private method to create dataframe for visulisation of acc/vel calcs
