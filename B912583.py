@@ -1393,6 +1393,7 @@ if __name__ == "__main__":
     
     # Step 5: Trajectory Generation
     # Calculate cubic coefficents for both Revolute and Prismatic joint
+    # Part a
     print('Calculating cubic polynomial coeffiecients for both Revolute and D1, D2 Prismatic joint...')
     revolute_cubic = sympy_manipulator.cubic_polynomial_TG(theta_0=100, theta_f=20, t_f=1)
     d1_cubic = sympy_manipulator.cubic_polynomial_TG(theta_0=0.1, theta_f=0.5, t_f=1)
@@ -1407,6 +1408,7 @@ if __name__ == "__main__":
     sympy_manipulator.display_polynomials(revolute_plots_cubic, d1_plots_cubic, d2_plots_cubic)
 
     # Calculate quintic coefficents for both Revolute and Pristmatic joints
+    # part b
     print('Calculating quintic polynomial coeffiecients for both Revolute and D1, D2 Prismatic joint...')
     revolute_quintic = sympy_manipulator.quintic_polynomial_TG(theta_0=100, theta_f=20, t_f=1)
     d1_quintic = sympy_manipulator.quintic_polynomial_TG(theta_0=0.1, theta_f=0.5, t_f=1)
@@ -1427,7 +1429,8 @@ if __name__ == "__main__":
     sympy_manipulator.display_all_polynomial_plots(revolute_plots_cubic, revolute_plots_quintic, d1_plots_cubic, d1_plots_quintic, d2_plots_cubic, d2_plots_quintic)
     
     # # TODO add explanation of graphs, discussion of results and a 'legend'
-    
+    # Calculating two cubic polynomials with via point
+    # part c
     print('\n\n\n\n Displaying plot for two cubic polynomials with via point, where the starting theta is 100, via point is 50 and final theta is 20:\n')
     sympy_manipulator.calculate_polynomials_via_point(theta_1=100, theta_2=60, theta_3=20, acc=50)
     
