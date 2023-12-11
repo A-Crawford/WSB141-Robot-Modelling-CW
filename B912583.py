@@ -3,8 +3,18 @@
 @Author Aidan Crawford
 23WSB141 Introduction To Robotics Coursework
 Due Week 11, Semester 1 - W/C 11/12/23
+
+Dependencies:
+    Python Ver. 3.8.10 64 Bit 
+    Robotics Toolbox for Python
+    Matplotlib
+    Spatialmath
+    Numpy
+    Sympy
+    Pandas
 '''
 
+# Import libraries
 from roboticstoolbox import DHRobot, RevoluteMDH, PrismaticMDH, IKSolution
 import roboticstoolbox as rbt
 import matplotlib.pyplot as plt
@@ -13,6 +23,7 @@ import numpy as np
 import sympy as sy
 import pandas as pd
 
+# Define global constants - Defined in various questions of the coursework
 STEP1_FK_JOINT_ANGLES = [0, 0.5, 0, 0, 0, 0]
 
 STEP2_IK_TRANSFORM_1 = np.array(
@@ -55,6 +66,24 @@ STEP3_STATIC_FORCE_TRANSFORM = np.array(
     ]
 )
 
+STEP5_PARTD_CURRENT_POSE = np.array(
+    [
+        [-0.7071, 0, 0.7071, 0.0061],
+        [0.7071, 0, 0.7071, 0.2596],
+        [0, 1, 0, 0.1],
+        [0, 0, 0, 1]
+    ]
+)
+
+STEP5_PARTD_NEW_POSE = np.array(
+    [
+    [-0.7071, 0, 0.7071, 0.1061],
+    [0.7071, 0, 0.7071, 0.3596],
+    [0, 1, 0, 0.2],
+    [0, 0, 0, 1]
+    ]
+)
+
 class RPPRRRManipulator(DHRobot):
     """
     Class to model and interact with RPPRRR Manipulator as defined in 23WSB141 - Introduction To Robotics Coursework
@@ -85,7 +114,7 @@ class RPPRRRManipulator(DHRobot):
     def __init__(self):
         '''
         RPPRRR Manipulator constructor
-        Defines predetermined values specified in 23WSB141 Coursework Brief
+        Defines predetermined values specified in 23WSB141 Coursework Brief which describe the manipulator 
         
         '''
         
@@ -127,7 +156,7 @@ class RPPRRRManipulator(DHRobot):
                 qlim=np.array([0, 0])
                 ), 
 
-            RevoluteMDH(
+            RevoluteMDH( # First Revolute
                 alpha=self.DH_TABLE[1][0], 
                 a=self.DH_TABLE[1][1], 
                 d=self.DH_TABLE[1][2], 
@@ -135,14 +164,14 @@ class RPPRRRManipulator(DHRobot):
                 qlim=np.array([np.radians(-180), np.radians(180)])
                 ), 
 
-            PrismaticMDH(
+            PrismaticMDH( # Second Prismatic
                 alpha=self.DH_TABLE[2][0], 
                 a=self.DH_TABLE[2][1], 
                 q=self.DH_TABLE[2][2], 
                 offset=self.DH_TABLE[2][3], 
                 qlim=np.array([0.0, 0.5])
                 ),
-            PrismaticMDH(
+            PrismaticMDH( # Third Prismastic
                 alpha=self.DH_TABLE[3][0], 
                 a=self.DH_TABLE[3][1], 
                 q=self.DH_TABLE[3][2], 
@@ -150,21 +179,21 @@ class RPPRRRManipulator(DHRobot):
                 qlim=np.array([-0.1, 0.1])
                 ),
 
-            RevoluteMDH(
+            RevoluteMDH( # Fourth Revolute
                 alpha=self.DH_TABLE[4][0],
                 a=self.DH_TABLE[4][1], 
                 d=self.DH_TABLE[4][2], 
                 offset=self.DH_TABLE[4][3], 
                 qlim=np.array([np.radians(-90), np.radians(90)])
                 ),
-            RevoluteMDH(
+            RevoluteMDH( # Fifth Revolute
                 alpha=self.DH_TABLE[5][0], 
                 a=self.DH_TABLE[5][1], 
                 d=self.DH_TABLE[5][2], 
                 offset=self.DH_TABLE[5][3], 
                 qlim=np.array([np.radians(-180), np.radians(180)])
                 ),
-            RevoluteMDH(
+            RevoluteMDH( # Sixth Revolute
                 alpha=self.DH_TABLE[6][0], 
                 a=self.DH_TABLE[6][1], 
                 d=self.DH_TABLE[6][2], 
@@ -182,7 +211,7 @@ class RPPRRRManipulator(DHRobot):
         ]
 
 
-        super().__init__(
+        super().__init__( # To call superclass init, inheriting from DHRobot of Robotics Toolbox library
             links, 
             name="RPPRRR Manipulator",
         )
@@ -201,12 +230,13 @@ class RPPRRRManipulator(DHRobot):
         .. note::
             - Angles are in radians
             - Automatically adds a zero to the start and end of `joint_angles` to account for the placeholder joints used in the model to represent the base and end effector
-            - If a solution cannot be found None will be returned
+            - If a solution cannot be found False will be returned
         '''
-        
+        # Check the joint angles are compatible with fordward kinematic method of Robotics Toolbox
         self.__joint_type_check(joint_angles, list)
         joint_angles = self.__correct_list_size(joint_angles)
 
+        # Calculate forward kinematics to return solution
         try: 
             fk_sol = self.fkine(joint_angles)
         except Exception as e:
@@ -215,7 +245,7 @@ class RPPRRRManipulator(DHRobot):
 
         return fk_sol
     
-    def inverse_kinematics(self, transform: np.ndarray, display=False) -> IKSolution:
+    def inverse_kinematics(self, transform: np.ndarray) -> IKSolution:
         '''
         Given a desired positon P and Orientation R, in the form of a SE3 transformation matrix, will return whether the manipulator can reach and all the solutions to do so. Has a 100 maximum search limit.
         If the desired position and orientation are out of reach, method will return the closest solution
@@ -229,21 +259,25 @@ class RPPRRRManipulator(DHRobot):
         
         print("\nCalculating Inverse Kinematics for the folllowing transformation matrix:\n", transform)
         
+        # Checking the compability of the transfromation matrix (type check)
         self.__transform_type_check(transform)
-        self.solutions = []
+        self.solutions = [] # Multiple soltuions possible for each inverse kinematic problem. Iterates to collect them
         for x in range(0, 16):
             ik = self.ikine_LM(transform)
             self.solutions.append(ik)
         
+        # Lists requried for determining possible valid/invalid solutions 
         valid_solutions = []
         invalid_solutions = []
         
+        # ikine_LM returns IKSoltuions which will return a soltuion regardless of its validity. This checks the success and only stores those which are successful
         for x in self.solutions:
             if x.success is True:
                 valid_solutions.append(x)
             else:
                 invalid_solutions.append(x)
-                
+        
+        # Logic for disaplying the results based on the solutions found and user interactions        
         if len(valid_solutions) > len(invalid_solutions):          
             if len(valid_solutions) > 15:
                 print("\n16 Kinematic Solutions found.")
@@ -257,10 +291,11 @@ class RPPRRRManipulator(DHRobot):
         else:
             print("\nInverse Kinematic solution not possible.")
             print(f'\nCloest solution: {invalid_solutions[0]}')
-                    
+        
+        # Return solutions for further processing            
         return valid_solutions, invalid_solutions
     
-    def step3_inverse_kinematic_solver(self, transform: SE3):
+    def step3_inverse_kinematic_solver(self, transform: SE3): # Method for specificly step 3 of the coursework brief
         '''
         Given a transformation matrix, will calculate the inverse kinematic solutions. 
         Will calculate the error in the solution regardless of if a valid soltuion is found or not
@@ -269,19 +304,21 @@ class RPPRRRManipulator(DHRobot):
         :type ndarray: Numpy ndarray
         '''
         
+        #Index used to track whether method should use valid or invalid kinematic solutions
         index = 1
-        ik_sol_1 = self.inverse_kinematics(transform, display=True)
-        if self.__compare_len(ik_sol_1[0], ik_sol_1[1]):
+        ik_sol_1 = self.inverse_kinematics(transform)
+        if self.__compare_len(ik_sol_1[0], ik_sol_1[1]): # Comparing valid v invalid solutions to calculate whether the fkine_LM model was able to return a soltuion
             index = 0
         
-        lowest_error = 100
-        best_sol = IKSolution
-        for x in ik_sol_1[index]:
+        lowest_error = 100 # Arbitary value which an error won't be lower than for comparison
+        best_sol = IKSolution 
+        for x in ik_sol_1[index]: # Sort through solutions and find the lowest error == 'best  soltuion'
             ik_sol_1_error = self.ik_error(transform, x)
             if ik_sol_1_error < lowest_error:
                 lowest_error = ik_sol_1_error
                 best_sol = x
-                
+        
+        # Interact with user for display of results
         print(f"\nBest IK solution {best_sol.q} with the lowest error of: {lowest_error}")
 
         if input(f"\nDisplay plot for best IK solution for transform: \n{transform}? \nY/N ").upper() == 'Y':
@@ -301,13 +338,13 @@ class RPPRRRManipulator(DHRobot):
         :return ik_error: numerical error
         :type ik_error: float
         '''
-        
+        # Type checking
         self.__transform_type_check(transform)
         self.__joint_type_check(ik_solution, IKSolution)
-        ik_error = np.linalg.norm(transform - self.fkine(ik_solution.q))
+        ik_error = np.linalg.norm(transform - self.fkine(ik_solution.q)) # Norm difference error
         return ik_error
             
-    def joint_velocities(self, joint_angles: list, joint_velocities: list):
+    def joint_velocities(self, joint_angles: 'list[float]', joint_velocities: 'list[float]'):
         '''
         Given a set of joint angles and velocitiies, will return a jacobian matrix of linear and angular velocities
         
@@ -332,6 +369,7 @@ class RPPRRRManipulator(DHRobot):
         self.__joint_type_check(joint_velocities, list) # Will raise an exception if incorrect type
         joint_velocities = self.__correct_list_size(joint_velocities) #Check list has sufficient joint variables, add 0s to start/end for 'fake' joints if not already present
         
+        # Utilise robotics toolbox for generating jacobian soltuion and the concequent velocities
         jacobian_matrix = self.jacob0(joint_angles)
         velocites = jacobian_matrix @ joint_velocities
         linear_velocities = velocites[:3]
@@ -360,10 +398,11 @@ class RPPRRRManipulator(DHRobot):
         # Calculate joint angles from transform using inverse_kinematics
         # Joint angles used to declare wrench variable 
         index = 1
-        ik_sol_1 = self.inverse_kinematics(transform, display=True)
+        ik_sol_1 = self.inverse_kinematics(transform)
         if self.__compare_len(ik_sol_1[0], ik_sol_1[1]):
             index = 0
         
+        # Arbitary error value which the error wont be higher then. Compares solutions to find lowest error
         lowest_error = 100
         best_sol = IKSolution
         for x in ik_sol_1[index]:
@@ -377,15 +416,50 @@ class RPPRRRManipulator(DHRobot):
         torques = self.pay(wrench, joint_angles, jacobian_matrix, 0) #RBT function to calculate torques from payload
         return torques # return calculated values
     
-    def generate_trapezoida_velocity(self, theta_s, theta_f, t_r): # TODO: Possibly remove
+    def generate_trapezoida_velocity(self, theta_s: float, theta_f: float, t_r: float): # Obsolete
+        '''
+        Given a starting and final theta value, with a time to complete, will calculate the trapezoidal position, velocity, and acceleration
+        
+        Will display plot and print the generated function
+        
+        :param theta_s: Starting theta value
+        :type theta_s: Float
+        :param theta_f: End theta value
+        :type theta_s: Floats
+        '''
+        
         tg = rbt.trapezoidal(q0=theta_s, qf=theta_f, t=t_r)
         print(len(tg))
         tg.plot(block=True)
         
         print(rbt.trapezoidal_func(q0=theta_s, qf=theta_f, T=t_r)(1))
+        
+    def calculate_cartesian_point_to_point(self, intial_transform: SE3, end_transform: SE3):
+        '''
+        Given an intial transfrom and goal transfrom, will calcualte simple straight line cartesian transform, will plot if so desired
+        
+        :param inital_transform: Starting pose
+        :type intial_transform: SE3
+        :param end_transform: Final pose
+        :type end_transform: SE3
+        '''
+        
+        # Ensuring the transformation matricies are compatible with robotics toolbox cartesian trajectory method
+        intial_pose = self.ikine_LM(intial_transform)
+        new_pose = self.ikine_LM(end_transform)
+        intial_pose = self.fkine(intial_pose.q)
+        new_pose = self.fkine(new_pose.q)
+        tg = rbt.ctraj(intial_pose, new_pose, 3)
+        
+        print('Cartesian tranfrom: \n', tg)
+        if input('Display trajectory plot? Y/N ').upper() == 'Y':
+            tg.plot(block=False)
+            plt.show()
     
     def __transform_type_check(self, var: SE3):
         '''
+        Private method
+        
         Given a transform, will return a bool as to whether it is a valid type#
         
         :param var: The variable to check validity of type
@@ -400,8 +474,10 @@ class RPPRRRManipulator(DHRobot):
             raise TypeError(f"{type(var)} is not valid. {np.ndarray}, or, {type(SE3)} expected.")
             return False
     
-    def __joint_type_check(self, var, output, alt_output=None):
+    def __joint_type_check(self, var: any, output: any, alt_output=None):
         '''
+        Private method
+        
         Given a var and desired type, will return Bool whether type is correct. ALternative output can be used when more than one type is accetable, eg. SE3 and ndarray
         
         :param var: The variable to check type of
@@ -418,8 +494,10 @@ class RPPRRRManipulator(DHRobot):
         else:
             return True
         
-    def __correct_list_size(self, input_list: list) -> list:
+    def __correct_list_size(self, input_list: 'list[float]') -> list:
         '''
+        Private method
+        
         Given a list of size six (6), will return an amended list with a leading and following 0 from the original list
         
         :param input_list: A list to correct to size eight (8) from six
@@ -441,6 +519,8 @@ class RPPRRRManipulator(DHRobot):
         
     def __compare_len(self, list1: list, list2: list):
         '''
+        Private method
+        
         Given two lists, will return True if the first contains more items than the second
         
         :param list1: List which second list will be compared to
@@ -1009,8 +1089,12 @@ class RPPRRRManipulator(DHRobot):
             :type theta_f: float
             :param t_f: Time to move in Seconds
             :type t_f: float
+            
+            :return a_0, a_1, a_2, a_3: Tuple of cubic coefficients
+            :type [a_0, a_1, a_2, a_3]: tuple[float]
             '''
             
+             # Equations from Introduction to Robotics - John Craig (4th Edition)
             a_0 = theta_0
             a_1 = 0
             a_2 = (3 / np.power(t_f, 2)) * (theta_f - theta_0)
@@ -1020,15 +1104,27 @@ class RPPRRRManipulator(DHRobot):
         
         def quintic_polynomial_TG(self, theta_0: float, theta_f: float, t_f: float):
             '''
-            Calculate quintic polynomial
+            Given the starting (theta_0) and finishing (theta_f) joint angle and the time to compelte the movement (t_f) will compute the quintic polynomial coeffiecents required
+            
+            :param theta_0: Starting Joint Angle 
+            :type theta_0: float
+            :param theta_f: Final Joint Angle
+            :type theta_f: float
+            :param t_f: Time to move in Seconds
+            :type t_f: float
+            
+            :return a_0, a_1, a_2, a_3. a_4, a_5: Tuple of quintic coefficients
+            :type [a_0, a_1, a_2, a_3, a_4, a_5]: tuple[float]
             '''
             
+            #Differentiate for deriviatves
             t = sy.Symbol('t')
             theta_0_dot = sy.diff(theta_0, t)
             theta_f_dot = sy.diff(theta_f, t)
             theta_0_2dot = sy.diff(theta_0_dot, t)
             theta_f_2dot = sy.diff(theta_f_dot, t)
             
+            # Equations from Introduction to Robotics - John Craig (4th Edition)
             a_0 = theta_0
             a_1 = theta_0_dot
             a_2 = theta_0_2dot / 2
@@ -1060,18 +1156,21 @@ class RPPRRRManipulator(DHRobot):
             :type acc_plot: sy.Plot
             '''
             
+            # List of Lists for selecting coour based on whether the plot is cubic or quintic
             line_color = [['blue', 'green', 'red', 'yellow'], ['dodgerblue', 'magenta', 'darkviolet', 'orange']]
-            index = 0
+            index = 0# Index determined by quintic or cubic for selection of colours later on
             t = sy.Symbol('t')
             if order == 5:
                 traj = coeff[0] + (coeff[1] * t) + (coeff[2] * np.power(t, 2)) + (coeff[3] * np.power(t, 3)) + (coeff[4] * np.power(t, 4)) + (coeff[5] * np.power(t, 5))
                 index = 1
             else:
                 traj = coeff[0] + (coeff[1] * t) + (coeff[2] * np.power(t, 2)) + (coeff[3] * np.power(t, 3))
+            # Eqs either cubic or quintic
             vel = sy.diff(traj, t)
             acc = sy.diff(vel, t)
             jerk = sy.diff(acc, t)
             
+            # Generate plots dependent on Revolute, D1 (Prismatic) or D2 (Prismatic) joints 
             if joint_type.upper() == 'REVOLUTE':
                 traj_plot = sy.plot(traj, (t, 0, t_f), ylabel='Theta (Degrees)', show=False, title='Position', line_color=line_color[index][0])
                 vel_plot = sy.plot(vel, (t, 0, t_f), ylabel='Theta Dot', show=False, title='Velocity', line_color=line_color[index][1])
@@ -1090,7 +1189,7 @@ class RPPRRRManipulator(DHRobot):
             
             return traj_plot, vel_plot, acc_plot, jerk_plot
         
-        def display_polynomials(self, revolute_plots, d1_plots, d2_plots):
+        def display_polynomials(self, revolute_plots: 'tuple[sy.plot]', d1_plots: 'tuple[sy.plot]', d2_plots: 'tuple[sy.plot]'):
             '''
             Method to plot the differnt revolute, d1, and d2, polynomial trajectories
             
@@ -1101,10 +1200,10 @@ class RPPRRRManipulator(DHRobot):
             :param d2_plot: List of Sympy.plot objects of prismatic Position, Velocity and Acceeleration plots
             :type d2_plot: List[sy.Plot]
             '''
-            
+            # Utilise sympy PlotGrid to quickly plot all graphs
             sy.plotting.PlotGrid(4, 3, revolute_plots[0], d1_plots[0], d2_plots[0], revolute_plots[1], d1_plots[1], d2_plots[1], revolute_plots[2], d1_plots[2], d2_plots[2], revolute_plots[3], d1_plots[3], d2_plots[3])
             
-        def display_all_polynomial_plots(self, revolute_cubic, revolute_quintic, d1_cubic, d1_quintic, d2_cubic, d2_quintic):
+        def display_all_polynomial_plots(self, revolute_cubic: 'tuple[sy.plot]', revolute_quintic: 'tuple[sy.plot]', d1_cubic: 'tuple[sy.plot]', d1_quintic: 'tuple[sy.plot]', d2_cubic: 'tuple[sy.plot]', d2_quintic: 'tuple[sy.plot]'):
             '''
             Method to plot all revolute, d1, and d1 polynomial trajectories of both cubic and quintic solutions
             
@@ -1120,7 +1219,7 @@ class RPPRRRManipulator(DHRobot):
             :type d2_cubic: List[sy.Plot]
             :param d2_quintic: List of Sympy.plot objects of prismtatic Position, Velcoity and ACceleration plots
             '''
-            
+            # Utilise sympy PlotGrid to quickly plot all graphs
             sy.plotting.PlotGrid(4, 6, revolute_cubic[0], revolute_quintic[0], d1_cubic[0], d1_quintic[0], d2_cubic[0], d2_quintic[0], revolute_cubic[1], revolute_quintic[1], d1_cubic[1], d1_quintic[1], d2_cubic[1], d2_quintic[1], revolute_cubic[2], revolute_quintic[2], d1_cubic[2], d1_quintic[2], d2_cubic[2], d2_quintic[2], revolute_cubic[3], revolute_quintic[3], d1_cubic[3], d1_quintic[3], d2_cubic[3], d2_quintic[3])
         
         def calculate_polynomials_via_point(self, theta_1: float, theta_2: float, theta_3: float, acc=50, joint_type='revolute'):
@@ -1134,9 +1233,11 @@ class RPPRRRManipulator(DHRobot):
             :param theta_3: final theta value
             :type theta_3: float
             '''
+            
+            # Time difference predetermined in coursework brief - This should be a method parameter
             td_12 = td_23 = 2
             
-            
+            # Calc values using equations in Introduction To Robotics - John Craig (4th Edition)
             theta1_2dot = self.__sign(theta_2, theta_1) * acc
             t_1 = td_12 - np.sqrt(np.power(td_12 , 2) - (2 * ( theta_2 - theta_1)) / theta1_2dot)
             theta12_dot = (theta_2 - theta_1) / (td_12 - (1/2 * t_1))
@@ -1145,19 +1246,21 @@ class RPPRRRManipulator(DHRobot):
             t_3 = td_23 - np.sqrt(np.power(td_23 , 2) + (2 * ( theta_3 - theta_2)) / theta3_2dot)
             theta23_dot = (theta_3 - theta_2) / (td_23 - (1/2 * t_3))
             
-            theta2_2dot = self.__sign(theta23_dot, theta12_dot) * acc
+            theta2_2dot = self.__sign(theta23_dot, theta12_dot) * acc #  Know that theta 2 doesn't have a curve due to teh values of t1 and t3 resulting in t2 being 0
             t_2 = (theta23_dot - theta12_dot) / theta3_2dot
             
             #Linear time 
             t_13 = (td_12 + td_23) - t_1 - (1/2 * t_3)
             
+            # Declare arrays so that they can be appended using numpy.append
+            # Arrays to be passed to plottting function
             time = np.array([])
             theta = np.array([])
             theta_dot = np.array([])  
             theta_dot_dot = np.array([])  
-            for t in np.arange(0, t_1 + t_13 + t_3, 0.001):
-                time = np.append(time, t)
-                if t <= t_1:
+            for t in np.arange(0, t_1 + t_13 + t_3, 0.001): # Iterate over the time 
+                time = np.append(time, t) # time appended consistently
+                if t <= t_1: # For each region (1st blend, linear, 2nd blend) calculate theta, theta_dot, theta_dot_dot and append to relevant array. 
                     
                     t_inb = t - (1/2 * t_1 + t_13)
                     theta = np.append(theta, ( theta_1 + (1/2 * theta12_dot * np.power(t, 2))))
@@ -1177,23 +1280,41 @@ class RPPRRRManipulator(DHRobot):
                     theta_dot = np.append(theta_dot, (theta12_dot + (theta3_2dot * t_inb)))
                     theta_dot_dot = np.append(theta_dot_dot, theta3_2dot)
                     
-                else:
+                else: # Exists for edge cases of elif limits to ensure there is not a array mismatch error in plotting
 
                     theta = np.append(theta, t)
         
-            self.__generate_plot(time, theta, theta_dot, theta_dot_dot, joint_type=joint_type)
-            
+            self.__generate_plot(time, theta, theta_dot, theta_dot_dot, joint_type=joint_type) # Call private function to generate and display plots
         
         def __sign(self, val1: float, val2: float) -> int:
             '''
             Private function to see if the difference between two values is positive or negative
+            
+            :param val1: Value to be deducted from
+            :type val1: float
+            :param val2: Value to take away from val1
+            :type val2: float
             '''
-            return -1 if val1 - val2 < 0 else 1
+            
+            return -1 if val1 - val2 < 0 else 1 # Inline conditonal
                 
         def __generate_plot(self, time: list, theta: list, theta_dot: list, theta_dot_dot: list, joint_type: str):
             '''
             Private function to generate plots for Position, Velocity and Acceleration
+            
+            :param time: List of time values
+            :type time: list<float>
+            :param theta: List of theta values
+            :type theta: list<float>
+            :param theta_dot: List of theta_dot values
+            :type theta_dot: list<float>
+            :param theta_dot_dot: List of theta_dot_dot values
+            :type theta_dot_dot: list<float>
+            :param joint_type: either 'PRISMATIC' or 'REVOLUTE', for correct labelling of graph
+            :type joint_type: str
             '''
+            
+            # Create matplotlib fig and axes
             fig, axs = plt.subplots(3)
             axs[0].plot(time, theta)
             axs[0].set_title('Position')
@@ -1202,6 +1323,7 @@ class RPPRRRManipulator(DHRobot):
             axs[2].plot(time, theta_dot_dot)
             axs[2].set_title('Acceleration')
             
+            # Determine graph lables based on 'joint_type' - defaults to theta
             ylbl1 = 'Theta'
             ylbl2 = 'Theta Dot'
             ylbl3 = 'Theta Dot Dot'
@@ -1216,8 +1338,11 @@ class RPPRRRManipulator(DHRobot):
             axs[1].set(ylabel=ylbl2)
             axs[2].set(ylabel=ylbl3)
             
+            # xlables are independent of joint type
             for ax in axs.flat:
                 ax.set(xlabel='t')
+                
+            fig.tight_layout()
             
             fig.show()
             plt.show()
@@ -1229,6 +1354,7 @@ class RPPRRRManipulator(DHRobot):
             :return dynamics_table: Pandas dataframe of dynamics calcs (UnSubbed)
             :type DataFrame
             '''
+            
             self.dynamics_data = {
                 "Omega": self.solved_omega_values,
                 "Omega_Dot": self.solved_omega_dot_values,
@@ -1248,6 +1374,7 @@ class RPPRRRManipulator(DHRobot):
             :return totals_data: Pandas dataframe of F/N totals and Joint Tau
             :type DataFrame
             '''
+            
             self.totals_data = {
                 "Total Link Force": self.solved_F_totals,
                 "Total Link Moment": self.solved_F_totals,
@@ -1261,6 +1388,7 @@ class RPPRRRManipulator(DHRobot):
             '''
             Private method to substitute values into new lists, removed from class __init__ method
             '''
+            
             self.solved_omega_values = self.__subsitute_values(self.omega_values)
             self.solved_omega_dot_values = self.__subsitute_values(self.omega_dot_values)
             self.solved_v_dot_values = self.__subsitute_values(self.v_dot_values)
@@ -1271,10 +1399,17 @@ class RPPRRRManipulator(DHRobot):
             self.solved_N_totals = self.__subsitute_values(self.N_totals)
             self.solved_tau_values = self.__subsitute_values(self.joint_torque_totals)
             
-        def __subsitute_values(self, value_list):
+        def __subsitute_values(self, value_list: 'list[float]') -> 'list[float]':
             '''
             Private method to handle the logic of value substituion using the Sympy library
+            
+            :param value_list: List of values for the sympy subsititution to happen to
+            :type value_list: list[float]
+            
+            :return target_list: New list for the results of subsitution of the value_list
+            :type target_list: list[float]
             '''
+            
             target_list = []
             for x in value_list:
                 target_list.append(x.subs({ # Substitude in joint values
@@ -1295,23 +1430,26 @@ class RPPRRRManipulator(DHRobot):
 
 
 if __name__ == "__main__":
-    
-    #TODO add statemnts tracking where you are in the code, the part of the coursework being asseseed and explainign the values presented for the manipualtor dynamics
 
     #Intialise instances of classes for both RBT and Sympy Solutions
     print('Initialising instaces of RPPRRR class...')
     manipulator = RPPRRRManipulator()
     sympy_manipulator = RPPRRRManipulator.RPPRRRManipulatorSympy()
     
+    #Print DH table
+    print('Manipulator DH Table:\n')
+    print(manipulator.DH_TABLE)
+    
+    print('Transfrom as function of joint angles:\n')
+    print(np.array(sympy_manipulator.TB_T))
+    
     #Print instance of manipulator to check DH and Qlim Values
     print(manipulator)
-    
-    
     
     #STEP 1: Forward Kinematics (FK)
     #Calcualte forward kinematic solution using the joint angles specified in 'Step 1: Forward Kinematics (FK)'
     # Robotics Toolbox solution
-    print('Step 1: Forward Kinematics (FK).\nCalculating forward kinematics from the joint angles provided using the Robotics Toolbox model.\n')
+    print('\nStep 1: Forward Kinematics (FK).\nCalculating forward kinematics from the joint angles provided using the Robotics Toolbox model.\n')
     manipulator_fk = manipulator.forward_kinematics(STEP1_FK_JOINT_ANGLES)
     
     # Sympy Solution - Calculated within the initialisation of the class
@@ -1342,7 +1480,7 @@ if __name__ == "__main__":
     # Now that we have confirmed a very small error in our IK we can use it to solve the transforms specified in 'Step 2: Inverse Kinematics (IK)'
     # Solve each transform specified in the breif. Q limits applied to manipualtor at initialisation
     print('\n\n\n\nStep 2: Inverse Kinematics (IK)\nCalculating inverse kinematics of a variety of transformation specified Step 2')
-    print('Using a method to handle all aspects of each transform.\nFor each transform, will calculate all possinle inverse solutions, display them and the solution with the lowest error, and plot joint angles.')
+    print('Using a method to handle all aspects of each transform.\nFor each transform, will calculate all possible inverse solutions, display them and the solution with the lowest error, and plot joint angles.')
     best_sol_1, error_1 = manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_1)
     best_sol_2, error_2 = manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_2)
     best_sol_3, error_3 = manipulator.step3_inverse_kinematic_solver(STEP2_IK_TRANSFORM_3)
@@ -1364,7 +1502,7 @@ if __name__ == "__main__":
     
     #Find the torque acting on each joint wuith a point mass of 0.2kg at the tool frame, at the specific transform
     print('\nCalculating the joint torque acting on each joint if a point mass of 0.2 is acting on a manipulator with the transform:\n', STEP3_STATIC_FORCE_TRANSFORM)
-    print('\nCaclculating the joint angles required for the specified transform using inverse kinematics:\n')
+    print('\nCalculating the joint angles required for the specified transform using inverse kinematics:\n')
     joint_torques = manipulator.static_torques(mass=0.2, g=9.8, transform=STEP3_STATIC_FORCE_TRANSFORM)
     print('\nJoint torques: ', joint_torques)
     
@@ -1373,6 +1511,7 @@ if __name__ == "__main__":
     
     
     #Step 4: Manipulator Dynamics
+    print('\n\n\n\nStep 4: Manipulator Dynamics')
     print('\nCalculate the required torques in each joint to bring the manipualtor to an emergancy stop.')
     print('\nThe manipulator is specified to be carrying a load of 0.2KG and is in the following pose:\n', sympy_manipulator.EMERGANCY_STOP_POSE)
     print('\nThe manipuattor is specified to be moving at the following joint velocities at the time of the emergancy stop:\n', sympy_manipulator.E_STOP_JOINT_VELOCITIES)
@@ -1393,7 +1532,9 @@ if __name__ == "__main__":
     
     # Step 5: Trajectory Generation
     # Calculate cubic coefficents for both Revolute and Prismatic joint
+    print('\n\n\n\nStep 4: Trajectory Generation')
     # Part a
+    print('\n\n\n\nPart A: Cubic Polynomial')
     print('Calculating cubic polynomial coeffiecients for both Revolute and D1, D2 Prismatic joint...')
     revolute_cubic = sympy_manipulator.cubic_polynomial_TG(theta_0=100, theta_f=20, t_f=1)
     d1_cubic = sympy_manipulator.cubic_polynomial_TG(theta_0=0.1, theta_f=0.5, t_f=1)
@@ -1405,10 +1546,15 @@ if __name__ == "__main__":
     d1_plots_cubic = sympy_manipulator.generate_polynomial_plot(d1_cubic, 1, joint_type='d1')
     d2_plots_cubic = sympy_manipulator.generate_polynomial_plot(d2_cubic, 1, joint_type='d2')
     print('Displaying plot for Revolute, D1, and D2 Cubic soltuions to Position, Velocity and Acceleration')
+    
+    print('\n\nThe position plots follow the expected path for a cubic function of time, with a smooth blend from the starting theta value to the final')
+    print('Similarly the velocity depicts an accurae dereiviatve of teh position, while the acceleration further demonstrates the impracitaility due to the immense acceleration values displayed.')
     sympy_manipulator.display_polynomials(revolute_plots_cubic, d1_plots_cubic, d2_plots_cubic)
+    
 
     # Calculate quintic coefficents for both Revolute and Pristmatic joints
     # part b
+    print('\n\n\n\nPart B: Quintic Polynomial')
     print('Calculating quintic polynomial coeffiecients for both Revolute and D1, D2 Prismatic joint...')
     revolute_quintic = sympy_manipulator.quintic_polynomial_TG(theta_0=100, theta_f=20, t_f=1)
     d1_quintic = sympy_manipulator.quintic_polynomial_TG(theta_0=0.1, theta_f=0.5, t_f=1)
@@ -1420,21 +1566,33 @@ if __name__ == "__main__":
     d1_plots_quintic = sympy_manipulator.generate_polynomial_plot(d1_quintic, 1, joint_type='d1', order=5)
     d2_plots_quintic = sympy_manipulator.generate_polynomial_plot(d2_quintic, 1, joint_type='d2', order=5)
     print('Displaying plot for Revolute, D1, and D2 quintic soltuions to Position, Velocity and Acceleration')
+    
+    print('\n\nThe position plots follow the expected path for a quintic function of time, with a smooth blend from the starting theta value to the final')
+    print('However, it is in the velocity and accerelaion where the changes are more noticable. The velocity now incorporates a smooth blend region at the beginning and end.')
+    print('This smooth blend is expected and more suitable to a manipulator in practice')
+    print('This is further demonstrated in the acceleration which now follows a sinusoidal curve creating a smoother acceleration curve')
     sympy_manipulator.display_polynomials(revolute_plots_quintic, d1_plots_quintic, d2_plots_quintic)
+    
     
     print('Disaplying Cubic and Quantic plots side by side.')
     print('Legend')
     print('Cubic Velocity: Blue\nCubic Velocity: Green\nCubic Acceleration: Red\nCubic Angular Jerk: Yellow')
     print('Quintic Velocity: Dodger Blue\nQuintic Velocity: Magenta\nQuintic Acceleration: Dark Violet\nQuintic Angular Jerk: Orange')
+    print('When comparing Cubic and Quintic side by side, the prominence of the improved smoothing of the higher order quintic become significantly more pronouced.')
     sympy_manipulator.display_all_polynomial_plots(revolute_plots_cubic, revolute_plots_quintic, d1_plots_cubic, d1_plots_quintic, d2_plots_cubic, d2_plots_quintic)
     
-    # # TODO add explanation of graphs, discussion of results and a 'legend'
+    
     # Calculating two cubic polynomials with via point
     # part c
-    print('\n\n\n\n Displaying plot for two cubic polynomials with via point, where the starting theta is 100, via point is 50 and final theta is 20:\n')
+    print('\n\n\n\nPart C: Two Cubic Polynomials with via point')
+    print('\n\n\n\nDisplaying plot for two cubic polynomials with via point for a revolute joint, where the starting theta is 100, via point is 50 and final theta is 20:\n')
     sympy_manipulator.calculate_polynomials_via_point(theta_1=100, theta_2=60, theta_3=20, acc=50)
     
-    print('\n\nDisplayingplot for two cubic polynomials with via point, where the starting d is 0.05, via point is 0.075 and final d is 0.10:\n')
+    print('\n\nDisplaying plot for two cubic polynomials with via point for a prismatic joint, where the starting d is 0.05, via point is 0.075 and final d is 0.10:\n')
     sympy_manipulator.calculate_polynomials_via_point(theta_1=0.05, theta_2=0.075, theta_3=0.10, acc=50, joint_type='PRISMATIC')
     
     
+    # Linear Interpolation in cartesian space
+    # part d
+    print('\n\n\n\nPart D: Linear Interpolation in Cartesian Space')
+    manipulator.calculate_cartesian_point_to_point(STEP5_PARTD_CURRENT_POSE, STEP5_PARTD_NEW_POSE)
